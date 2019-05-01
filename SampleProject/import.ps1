@@ -20,6 +20,7 @@ $cds.InitializeDeployment($true, $SourceConnectionString, $DestinationConnection
 $cds.ImportSolution($SolutionName)
 $cds.PushData("Data\data.txt", "Data\schema.txt")
 
+write-host "Done!"
 #Wait for key down
 #$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 

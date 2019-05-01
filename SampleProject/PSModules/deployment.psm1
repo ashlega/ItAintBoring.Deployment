@@ -43,6 +43,40 @@ function Custom-GetConnection($conString)
   return [Microsoft.Xrm.Tooling.Connector.CrmServiceClient]::New($conString);
 }
 
+function Get-EntityFilters()
+{
+	return [Microsoft.Xrm.Sdk.Metadata.EntityFilters]::Attributes
+}
+
+function Get-AttributeTypeName($typeCode)
+{
+   switch ($typeCode.Value)
+     {
+         ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::LookupType).Value { return "entityReference" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::MoneyType).Value { return "money" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::DecimalType).Value { return "decimal" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::StringType).Value { return "string" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::PicklistType).Value { return "optionSet" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::BooleanType).Value { return "bool" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::VirtualType).Value { return "virtual" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::DoubleType).Value { return "double" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::IntegerType).Value { return "integer" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::DateTimeType).Value { return "dateTime" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::UniqueidentifierType).Value { return "guid" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::StatusType).Value { return "status" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::StateType).Value { return "state" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::CustomerType).Value { return "customer" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::BigIntType).Value { return "bigint" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::MemoType).Value { return "string" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::EntityNameType).Value { return "entityName" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::ImageType).Value { return "image" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::OwnerType).Value { return "owner" }
+		 ([Microsoft.Xrm.Sdk.Metadata.AttributeTypeDisplayName]::MultiSelectPicklistType).Value { return "multiSelectOptionSet" }
+		 
+         default { return $typeCode }
+     }
+}
+
 
 class CDSDeployment {
 	
@@ -117,15 +151,12 @@ class CDSDeployment {
 		}
 		
 		$value = $value.Trim()
-		
-		if(($schema.$fieldName).StartsWith("OptionSet"))
-		{
-			$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value
-		}
-		else{
-		    if(($schema.$fieldName).StartsWith("MultiSelectOptionSet"))
-			{
-			    $stringValues = $value.Split(" ")
+		$convValue = $value
+
+		switch($schema.$fieldName){
+		   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
+		   "multiSelectOptionSet" { 
+		       $stringValues = $value.Split(" ")
 				[object] $valueList = foreach($number in $stringValues) {
 					try {
 					    New-Object Microsoft.Xrm.Sdk.OptionSetValue $number
@@ -137,22 +168,21 @@ class CDSDeployment {
 				$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValueCollection 
 				$convValue.AddRange($valueList)
 			}
-			else {
-				if(($schema.$fieldName).StartsWith("Money"))
-				{
-					$convValue = New-Object Microsoft.Xrm.Sdk.Money $value
-				}
-				else {
-					if(($schema.$fieldName).StartsWith("EntityReference"))
-					{
-					    $pair = $value.Split(":")
-						$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
-						$convValue.LogicalName = $pair[0]
-						$convValue.Id = $pair[1]
-						$convValue.Name = $null
-					}
-					else { $convValue = $value }
-				}
+			"money" {
+			   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
+			}
+			"entityReference" {
+			    $pair = $value.Split(":")
+				$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
+				$convValue.LogicalName = $pair[0]
+				$convValue.Id = $pair[1]
+				$convValue.Name = $null
+			}
+			"guid"{
+			   $convValue = [System.Guid]::Parse($value)
+			}
+			default {
+			   $convValue = $value
 			}
 		}
 		Set-Attribute $entity $fieldName $convValue
@@ -203,13 +233,13 @@ class CDSDeployment {
 						$this.SetField($entityName, $schema, $entity, $fieldName, $_.Value)
 					}
 					else{
-						$entity.id = $_.Value.Trim()
+						$entity.id = $_.Value
 					}
 				 }
 				 $this.UpsertRecord($this.DestConn, $entity)
 			}
 		}
-		write-host "Done!"
+		
 	}
 	
 	[void] ExportData([string] $FetchXml, [string] $DataFile)
@@ -240,6 +270,35 @@ class CDSDeployment {
 		write-host "Done!"
 	}
 	
+	[void] ExportSchema([string[]] $entityNames, [string] $schemaFile)
+	{
+
+	   
+		write-host "Exporting schema"
+		$schema = New-Object Object
+		if(Test-Path -Path $schemaFile){
+		   $schema = Get-Content "$schemaFile" | Out-String | ConvertFrom-Json 
+		}
+
+		$entityNames | ForEach-Object -Process {
+			$request = New-Object Microsoft.Xrm.Sdk.Messages.RetrieveEntityRequest
+			$request.EntityFilters = Get-EntityFilters
+			$request.LogicalName = $_
+			$response = $this.sourceConn.Execute($request)
+			$attributes = New-Object Object
+			if($schema.$($request.LogicalName) -eq $null)
+			{
+			    $schema | Add-Member -NotePropertyName $request.LogicalName -NotePropertyValue $null
+			}
+			$schema.$($request.LogicalName) = $attributes
+
+			$response.EntityMetadata.Attributes | ForEach-Object -Process {
+			    $typeName = Get-AttributeTypeName $_.AttributeTypeName
+			    $attributes | Add-Member -NotePropertyName $_.LogicalName -NotePropertyValue $typeName
+			}
+		}
+		$schema | ConvertTo-Json | Out-File -FilePath $schemaFile
+	}
 
 	[void] InitializeDeployment([Switch] $forceUpdate, [string] $sourceConnectionString, [string] $destinationConnectionString)
 	{

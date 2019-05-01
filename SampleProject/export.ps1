@@ -18,8 +18,14 @@ else{
 $cds = [CDSDeployment]::new()
 $cds.InitializeDeployment($true, $SourceConnectionString, $DestinationConnectionString)
 
+#Export schema
+$entityNames = @("ita_deployedentity")
+$cds.ExportSchema($entityNames, "Data\schema.txt")
+
+#Export solution
 $cds.ExportSolution($SolutionName, $false)
 
+#Export data
 $fetch = @'
 <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
   <entity name="ita_deployedentity">
@@ -35,7 +41,9 @@ $fetch = @'
 </fetch>
 '@
 
-$cds.ExportData($fetch, "Data\exportedData.txt")
+#$cds.ExportData($fetch, "Data\exportedData.txt")
+
+write-host "Done!"
 
 #Wait for key down
-#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
