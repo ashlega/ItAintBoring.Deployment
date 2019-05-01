@@ -1,0 +1,3 @@
+[
+ {"ita_deployedentity":{"ita_name":"string", "id":"guid", "ita_parententity":"EntityReference", "ita_optionset":"OptionSet", "ita_multiselect":"MultiSelectOptionSet", "ita_money":"Money"}}
+]
