@@ -46,4 +46,4 @@ $fetch = @'
 write-host "Done!"
 
 #Wait for key down
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
