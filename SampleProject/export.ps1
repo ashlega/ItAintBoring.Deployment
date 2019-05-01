@@ -41,7 +41,7 @@ $fetch = @'
 </fetch>
 '@
 
-#$cds.ExportData($fetch, "Data\exportedData.txt")
+$cds.ExportData($fetch, "Data\data.txt")
 
 write-host "Done!"
 

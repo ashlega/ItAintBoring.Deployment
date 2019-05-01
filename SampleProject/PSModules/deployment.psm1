@@ -171,6 +171,9 @@ class CDSDeployment {
 			"money" {
 			   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
 			}
+			"bool" {
+			   $convValue = [System.Boolean]::Parse($value)
+			}
 			"entityReference" {
 			    $pair = $value.Split(":")
 				$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
