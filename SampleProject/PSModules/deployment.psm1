@@ -1,4 +1,5 @@
 $HelperSource = @"
+
 public class Helper
 {
   public static void SetAttribute(Microsoft.Xrm.Sdk.Entity entity, string name, object value)
@@ -24,6 +25,18 @@ public class Helper
 }
 "@
 
+
+$RootBUFetch = @"
+<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+  <entity name="businessunit">
+    <attribute name="businessunitid" />
+    <order attribute="parentbusinessunitid" descending="false" />
+    <filter type="and">
+      <condition attribute="parentbusinessunitid" operator="null" />
+    </filter>
+  </entity>
+</fetch>
+"@
 
 function Get-Types($param)
 {
@@ -216,9 +229,28 @@ class CDSDeployment {
 		return $value
 	}
 
+    [string] ReplaceTags($val, $tagValues)
+	{
+	   foreach($key in $tagValues.keys){
+	      $val = $val.Replace($key, $tagValues[$key])
+	   }
+	   return $val;
+	}
+	
 	[void] PushData([string] $DataFile, [string] $SchemaFile)
 	{
 		write-host "Importing data files..."
+		
+		#start reading "tag" values
+		$query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $script:RootBUFetch
+		$results = $this.DestConn.RetrieveMultiple($query)
+
+		$tagValues = @{}
+		$results.Entities | ForEach-Object -Process{
+		    $tagValues.add("#ROOTBU#", $_.Id)
+		}
+		#end reading "tag" values	
+		
 		$cdsSchema = Get-Content "$SchemaFile" | Out-String | ConvertFrom-Json 
 		$json = Get-Content "$DataFile" | Out-String | ConvertFrom-Json 
 	  
@@ -232,11 +264,12 @@ class CDSDeployment {
 			     $entity = New-Object Microsoft.Xrm.Sdk.Entity -ArgumentList $entityName
 				 $_.value.PSObject.Properties | ForEach-Object -Process {
 				    $fieldName = $_.Name.Trim()
+					$value = $this.ReplaceTags($_.Value, $tagValues)
 					if($fieldName -ne "id") {
-						$this.SetField($entityName, $schema, $entity, $fieldName, $_.Value)
+						$this.SetField($entityName, $schema, $entity, $fieldName, $value)
 					}
 					else{
-						$entity.id = $_.Value
+						$entity.id = $value
 					}
 				 }
 				 $this.UpsertRecord($this.DestConn, $entity)
