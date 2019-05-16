@@ -1,5 +1,7 @@
 using module .\PSModules\deployment.psm1
 
+Import-Module .\TagLookups.psm1 -force -verbose
+
 if($env:ConnectionString -eq $null){
   Import-Module .\PSModules\deploymentSettings.psm1 -force -verbose
 }
@@ -15,14 +17,6 @@ else{
   $SolutionName = $env:SolutionName
 }
 
-$cds = [CDSDeployment]::new()
-$cds.InitializeDeployment($true, $SourceConnectionString, $DestinationConnectionString)
-$cds.ImportSolution($SolutionName)
-$cds.PushData("Data\data.txt", "Data\schema.txt")
-
-write-host "Done!"
-#Wait for key down
-#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-
-
-
+				
+$global:cds = [CDSDeployment]::new()
+$global:cds.InitializeDeployment($true, $SourceConnectionString, $DestinationConnectionString)

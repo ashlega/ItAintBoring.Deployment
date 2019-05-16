@@ -1,49 +1,30 @@
-using module .\PSModules\deployment.psm1
+Import-Module .\loader.psm1 -force -verbose
 
-if($env:ConnectionString -eq $null){
-  Import-Module .\PSModules\deploymentSettings.psm1 -force -verbose
-}
-else{
-  $SourceConnectionString = $env:ConnectionString
-  $DestinationConnectionString = $env:ConnectionString
-}
 
-if($env:SolutionName -eq $null){
-  $SolutionName = "DeploymentDemo"
-}
-else{
-  $SolutionName = $env:SolutionName
-}
-
-$cds = [CDSDeployment]::new()
-$cds.InitializeDeployment($true, $SourceConnectionString, $DestinationConnectionString)
 
 #Export schema
-$entityNames = @("ita_deployedentity")
-$cds.ExportSchema($entityNames, "Data\schema.txt")
+$entityNames = @("ita_deployedentity", "team", "businessunit", "queue", "teamroles", "documenttemplate")
+$global:cds.ExportSchema($entityNames, "Data\schema.txt")
 
 #Export solution
-$cds.ExportSolution($SolutionName, $false)
+#$cds.ExportSolution($SolutionName, $false)
 
 #Export data
 $fetch = @'
 <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
   <entity name="ita_deployedentity">
-    <attribute name="ita_deployedentityid" />
-    <attribute name="ita_name" />
-    <attribute name="createdon" />
-    <attribute name="ita_parententity" />
-    <attribute name="ita_optionset" />
-    <attribute name="ita_multiselect" />
-    <attribute name="ita_money" />
-    <order attribute="ita_name" descending="false" />
+    <all-attributes/>
   </entity>
 </fetch>
 '@
 
-$cds.ExportData($fetch, "Data\data.txt")
+$global:cds.ExportData($fetch, "Data\deployedentity.txt")
+
+
+
 
 write-host "Done!"
 
 #Wait for key down
-#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+

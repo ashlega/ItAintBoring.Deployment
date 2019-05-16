@@ -1,3 +1,8 @@
+$global:TagLookups= @{}
+$global:DestTagValues = @{}
+$global:SourceTagValues = @{}
+
+
 $HelperSource = @"
 
 public class Helper
@@ -25,18 +30,6 @@ public class Helper
 }
 "@
 
-
-$RootBUFetch = @"
-<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
-  <entity name="businessunit">
-    <attribute name="businessunitid" />
-    <order attribute="parentbusinessunitid" descending="false" />
-    <filter type="and">
-      <condition attribute="parentbusinessunitid" operator="null" />
-    </filter>
-  </entity>
-</fetch>
-"@
 
 function Get-Types($param)
 {
@@ -97,22 +90,52 @@ class CDSDeployment {
 	[PSObject] $DestConn = $null
 	[string]   $SolutionsFolder = ""    
 
-	[bool] CheckRecordExists([PSObject] $conn, [string] $entityName, [string] $id)
+	[bool] CheckRecordExists([PSObject] $conn, [PSObject] $entity, $isIntersect)
 	{
-		$query = New-Object Microsoft.Xrm.Sdk.Query.QueryByAttribute $entityName
-		$query.AddAttributeValue("${entityName}id", $id)
-		$query.ColumnSet = New-Object Microsoft.Xrm.Sdk.Query.ColumnSet "${entityName}id"
-		$results = $conn.RetrieveMultiple($query)
-		if($results.Entities.Count -gt 0) { return $true }
-		return $false
+	    
+			Try
+			{
+				$ColumnSet = New-Object Microsoft.Xrm.Sdk.Query.ColumnSet $true
+				$conn.Retrieve($entity.LogicalName, $entity.id, $ColumnSet)
+				return $true
+			}
+			Catch
+			{
+				return $false
+			}
+		
 	}
-
-	[void] UpsertRecord([PSObject] $conn, [PSObject] $entity)
+	
+	[void] UpsertRecord([PSObject] $conn, [PSObject] $entity, [PSObject] $schema)
 	{
 		#assuming there is always an id - this is for configuration data after all
-		$recordExists = $this.CheckRecordExists($conn, $entity.LogicalName, $entity.id)
-		if($recordExists) { $conn.Update($entity) }
-		else { $conn.Create($entity) }
+		if($schema.isIntersect){
+		    if($entity.LogicalName -eq "teamroles")
+			{
+			    $request = New-Object Microsoft.Xrm.Sdk.Messages.AssociateRequest
+			    $request.Target = New-Object Microsoft.Xrm.Sdk.EntityReference -ArgumentList @("role", $entity["roleid"])
+				$request.RelatedEntities = New-Object Microsoft.Xrm.Sdk.EntityReferenceCollection
+				
+				$teamRef = New-Object Microsoft.Xrm.Sdk.EntityReference -ArgumentList @("team", $entity["teamid"])
+				$request.RelatedEntities.Add($teamRef)
+				$request.Relationship = New-Object Microsoft.Xrm.Sdk.Relationship -ArgumentList @("teamroles_association")
+				try
+				{
+				  $conn.Execute($request)
+				}
+				catch
+				{
+				  if($_.Exception.Message.contains("Cannot insert duplicate key") -eq $false) {
+				    throw
+				  }
+				}
+    		}
+		}
+		else{
+			$recordExists = $this.CheckRecordExists($conn, $entity, $schema.isIntersect)
+			if($recordExists) { $conn.Update($entity) }
+			else { $conn.Create($entity) }
+		}
 	}
 
 	[void] PublishAll()
@@ -150,61 +173,69 @@ class CDSDeployment {
 	[void] SetField([string] $entityName, [PSObject] $schema, [PSObject] $entity, [string] $fieldName, [PSObject] $value)
 	{
 		
-		
-	    $assigned = $false
-		if($value -eq $null){
-		   Set-Attribute $entity $fieldName $null
-		   return
-		}
-		
-		if($schema.$fieldName -eq $null)
-		{
-		   write-host "$entityName.$fieldName attribute is not defined in the schema"
-		   return
-		}
-		
-		$value = $value.Trim()
-		$convValue = $value
+		try{
+			$assigned = $false
+			if($value -eq $null){
+			   Set-Attribute $entity $fieldName $null
+			   return
+			}
+			
+			if($schema.attributes.$fieldName -eq $null)
+			{
+			   write-host "$entityName.$fieldName attribute is not defined in the schema"
+			   return
+			}
+			
+			$value = $value.Trim()
+			$convValue = $value
 
-		switch($schema.$fieldName){
-		   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
-		   "multiSelectOptionSet" { 
-		       $stringValues = $value.Split(" ")
-				[object] $valueList = foreach($number in $stringValues) {
-					try {
-					    New-Object Microsoft.Xrm.Sdk.OptionSetValue $number
+			switch($schema.attributes.$fieldName){
+			   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
+			   "multiSelectOptionSet" { 
+				   $stringValues = $value.Split(" ")
+					[object] $valueList = foreach($number in $stringValues) {
+						try {
+							New-Object Microsoft.Xrm.Sdk.OptionSetValue $number
+						}
+						catch {
+							write-host "Cannot create an option set value for $entityName.$fieldName - $value"
+						}
 					}
-					catch {
-						write-host "Cannot create an option set value for $entityName.$fieldName - $value"
-					}
+					$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValueCollection 
+					$convValue.AddRange($valueList)
 				}
-				$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValueCollection 
-				$convValue.AddRange($valueList)
+				"money" {
+				   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
+				}
+				"bool" {
+				   $convValue = [System.Boolean]::Parse($value)
+				}
+				"entityReference" {
+					$pair = $value.Split(":")
+					$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
+					$convValue.LogicalName = $pair[0]
+					$convValue.Id = $pair[1]
+					$convValue.Name = $null
+				}
+				"guid"{
+				   $convValue = [System.Guid]::Parse($value)
+				}
+				"entityName"{
+				   $convValue = $value
+				}
+				default {
+				   $convValue = $value
+				}
 			}
-			"money" {
-			   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
-			}
-			"bool" {
-			   $convValue = [System.Boolean]::Parse($value)
-			}
-			"entityReference" {
-			    $pair = $value.Split(":")
-				$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
-				$convValue.LogicalName = $pair[0]
-				$convValue.Id = $pair[1]
-				$convValue.Name = $null
-			}
-			"guid"{
-			   $convValue = [System.Guid]::Parse($value)
-			}
-			default {
-			   $convValue = $value
-			}
+			Set-Attribute $entity $fieldName $convValue
 		}
-		Set-Attribute $entity $fieldName $convValue
+		catch{
+		    write-host "Error setting $fieldName to $value"
+			write-host $_.Exception.Message
+		}
 	}
 
-	[string] GetFieldValue($value)
+	[string] GetFieldValueInternal($value)
 	{
 	    $typeName =  $value.GetType().ToString().Trim()
 		if($typeName -eq "Microsoft.Xrm.Sdk.OptionSetValue"){
@@ -228,6 +259,16 @@ class CDSDeployment {
 		}
 		return $value
 	}
+	
+	[string] GetFieldValue($val, $tagValues)
+	{
+		$result = $this.GetFieldValueInternal($val)
+		#replace known values with tags
+	    foreach($key in $tagValues.keys){
+		  $result = $result.Replace($tagValues[$key], $key)
+	    }
+		return $result
+	}
 
     [string] ReplaceTags($val, $tagValues)
 	{
@@ -239,17 +280,7 @@ class CDSDeployment {
 	
 	[void] PushData([string] $DataFile, [string] $SchemaFile)
 	{
-		write-host "Importing data files..."
-		
-		#start reading "tag" values
-		$query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $script:RootBUFetch
-		$results = $this.DestConn.RetrieveMultiple($query)
-
-		$tagValues = @{}
-		$results.Entities | ForEach-Object -Process{
-		    $tagValues.add("#ROOTBU#", $_.Id)
-		}
-		#end reading "tag" values	
+		write-host "Importing data..."
 		
 		$cdsSchema = Get-Content "$SchemaFile" | Out-String | ConvertFrom-Json 
 		$json = Get-Content "$DataFile" | Out-String | ConvertFrom-Json 
@@ -264,7 +295,7 @@ class CDSDeployment {
 			     $entity = New-Object Microsoft.Xrm.Sdk.Entity -ArgumentList $entityName
 				 $_.value.PSObject.Properties | ForEach-Object -Process {
 				    $fieldName = $_.Name.Trim()
-					$value = $this.ReplaceTags($_.Value, $tagValues)
+					$value = $this.ReplaceTags($_.Value, $global:DestTagValues)
 					if($fieldName -ne "id") {
 						$this.SetField($entityName, $schema, $entity, $fieldName, $value)
 					}
@@ -272,7 +303,7 @@ class CDSDeployment {
 						$entity.id = $value
 					}
 				 }
-				 $this.UpsertRecord($this.DestConn, $entity)
+				 $this.UpsertRecord($this.DestConn, $entity, $schema)
 			}
 		}
 		
@@ -281,7 +312,9 @@ class CDSDeployment {
 	[void] ExportData([string] $FetchXml, [string] $DataFile)
 	{
 		write-host "Loading data..."
-		$query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $FetchXml
+		
+		$fetch = $this.ReplaceTags($FetchXml, $global:SourceTagValues)
+		$query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
 		$results = $this.SourceConn.RetrieveMultiple($query)
 
 		$records = @()
@@ -297,7 +330,7 @@ class CDSDeployment {
 
 		   
 			$_.Attributes | ForEach-Object -Process {
-			  $value | Add-Member -NotePropertyName $_.Key -NotePropertyValue $this.GetFieldValue($_.Value)
+			  $value | Add-Member -NotePropertyName $_.Key -NotePropertyValue $this.GetFieldValue($_.Value, $global:SourceTagValues)
 			}
 			
 		}
@@ -324,9 +357,28 @@ class CDSDeployment {
 			$attributes = New-Object Object
 			if($schema.$($request.LogicalName) -eq $null)
 			{
-			    $schema | Add-Member -NotePropertyName $request.LogicalName -NotePropertyValue $null
+			    $entityObject = New-Object Object
+			    $schema | Add-Member -NotePropertyName $request.LogicalName -NotePropertyValue $entityObject
 			}
-			$schema.$($request.LogicalName) = $attributes
+			
+			if($schema.$($request.LogicalName).attributes -eq $null)
+			{
+			    $schema.$($request.LogicalName) | Add-Member -NotePropertyName "attributes" -NotePropertyValue $attributes
+			}
+			
+			if($schema.$($request.LogicalName).isIntersect -eq $null)
+			{
+			    $schema.$($request.LogicalName) | Add-Member -NotePropertyName "isIntersect" -NotePropertyValue $false
+			}
+			
+			if($schema.$($request.LogicalName).primaryIdAttribute -eq $null)
+			{
+			    $schema.$($request.LogicalName) | Add-Member -NotePropertyName "primaryIdAttribute" -NotePropertyValue ""
+			}
+			
+			$schema.$($request.LogicalName).isIntersect = $response.EntityMetadata.IsIntersect 
+			$schema.$($request.LogicalName).attributes = $attributes
+			$schema.$($request.LogicalName).primaryIdAttribute = $response.EntityMetadata.PrimaryIdAttribute
 
 			$response.EntityMetadata.Attributes | ForEach-Object -Process {
 			    $typeName = Get-AttributeTypeName $_.AttributeTypeName
@@ -388,6 +440,32 @@ class CDSDeployment {
 		#$this.DestConn = Custom-GetConnection $destinationConnectionString
 		$this.SourceConn = Get-CrmConnection -ConnectionString $sourceConnectionString
 		$this.DestConn = Get-CrmConnection -ConnectionString $destinationConnectionString
+		
+		#start reading "tag" values
+	
+	    #Destination lookups
+		foreach($key in $global:TagLookups.keys){
+		  $fetch = $global:TagLookups[$key]
+		  $fetch = $this.ReplaceTags($fetch, $global:TagLookups)
+		  $query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
+		  $results = $this.DestConn.RetrieveMultiple($query)
+		  $results.Entities | ForEach-Object -Process{
+			$DestTagValues[$key] = $_.Id
+		  }  
+  	    }
+		
+		#Source lookups
+		foreach($key in $global:TagLookups.keys){
+		  $fetch = $global:TagLookups[$key]
+		  $fetch = $this.ReplaceTags($fetch, $global:TagLookups)
+		  $query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
+		  $results = $this.SourceConn.RetrieveMultiple($query)
+		  $results.Entities | ForEach-Object -Process{
+			$SourceTagValues[$key] = $_.Id
+		  }  
+  	    }
+		
+		#end reading "tag" values	
 		
 		
 	}
