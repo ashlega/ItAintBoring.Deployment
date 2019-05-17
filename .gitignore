@@ -10,10 +10,8 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
-SampleProject/PSModules/*Microsoft.CrmSdk*
-SampleProject/PSModules/nuget.exe
-SampleProject/PSModules/deploymentSettings.psm1
-SampleProject/Data/exportedData.txt
+Setup/PSModules/*Microsoft.CrmSdk*
+Setup/PSModules/nuget.exe
 
 # Build results
 [Dd]ebug/

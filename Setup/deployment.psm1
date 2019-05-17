@@ -1,6 +1,8 @@
-$global:TagLookups= @{}
-$global:DestTagValues = @{}
-$global:SourceTagValues = @{}
+
+$script:cds = $null
+$script:TagLookups = @{}
+$script:DestTagValues = @{}
+$script:SourceTagValues = @{}
 
 
 $HelperSource = @"
@@ -31,9 +33,64 @@ public class Helper
 "@
 
 
+function Add-CDSTagLookup{
+  param(
+      [Parameter(Mandatory = $true)]
+      [string]
+	  $tagName = $null,
+	  [Parameter(Mandatory = $true)]
+      [string]
+	  $fetch = $null
+   )
+  if ($script:TagLookups.Contains($tagName)  -eq $false){
+    $TagLookups.add($tagName, $fetch)
+  }
+}
+
+function Get-CDSSchema($entityNames, $fileName){
+   $script:cds.ExportSchema($entityNames, $fileName)
+}
+
+function Push-CDSData($fileName, $schemaFileName){
+   $script:cds.ImportData($fileName, $schemaFileName)
+}
+
+function Get-CDSData{
+   param(
+      [Parameter(Mandatory = $true)]
+      [string]
+	  $fetch = $null,
+	  [Parameter(Mandatory = $true)]
+      [string]
+	  $filePath = $null
+   )
+   $script:cds.ExportData($fetch, $filePath)
+}
+
+function Initialize-CDSConnections{
+   param(
+      [string]$EnvironmentFolder = $null,
+      [switch]$ForceUpdate = $true, 
+	  [string]$SourceConnectionString = $null, 
+	  [string]$DestinationConnectionString = $null
+   )
+   $script:cds = [CDSDeployment]::new()
+   $script:cds.InitializeDeployment($EnvironmentFolder, $ForceUpdate, $SourceConnectionString, $DestinationConnectionString) 
+}
+
 function Get-Types($param)
 {
   return [Helper]::GetObjectTypes($param)
+}
+
+function Get-CDSSolution([string] $solutionName, [switch] $Managed = $false)
+{
+  $script:cds.ExportSolution($solutionName, $Managed)
+}
+
+function Push-CDSSolution([string] $fileName)
+{
+  $script:cds.ImportSolution($fileName)
 }
 
 #A workaround for PSObject wrapping/unwrapping
@@ -44,7 +101,7 @@ function Set-Attribute($entity, $name, $value)
    else{  [Helper]::SetAttribute($entity, $name, $value) }
 }
 
-function Custom-GetConnection($conString)
+function Get-CustomConnection($conString)
 {
   return [Microsoft.Xrm.Tooling.Connector.CrmServiceClient]::New($conString);
 }
@@ -86,6 +143,7 @@ function Get-AttributeTypeName($typeCode)
 
 class CDSDeployment {
 	
+	[string] $environmentFolder = $null
 	[PSObject] $SourceConn = $null
 	[PSObject] $DestConn = $null
 	[string]   $SolutionsFolder = ""    
@@ -147,7 +205,7 @@ class CDSDeployment {
 	[void] ImportSolution([string] $solutionName)
 	{
 		$impId = New-Object Guid
-		write-host "Importing solution"
+		write-host "Importing solution: $solutionName"
 		$this.DestConn.ImportSolutionToCrm("$($this.SolutionsFolder)\$solutionName.zip",[ref] $impId)
 		write-host "Publishing customizations"
 		$this.PublishAll()
@@ -155,6 +213,7 @@ class CDSDeployment {
 
 	[void] ExportSolution([string] $solutionName, [switch] $Managed = $false)
 	{
+	    write-host "Exporting solution: $solutionName"
 		$request = New-Object Microsoft.Crm.Sdk.Messages.ExportSolutionRequest
 		$request.Managed = $Managed
 		$request.SolutionName = $solutionName
@@ -278,9 +337,9 @@ class CDSDeployment {
 	   return $val;
 	}
 	
-	[void] PushData([string] $DataFile, [string] $SchemaFile)
+	[void] ImportData([string] $DataFile, [string] $SchemaFile)
 	{
-		write-host "Importing data..."
+		write-host "Importing data from $dataFile..."
 		
 		$cdsSchema = Get-Content "$SchemaFile" | Out-String | ConvertFrom-Json 
 		$json = Get-Content "$DataFile" | Out-String | ConvertFrom-Json 
@@ -295,7 +354,7 @@ class CDSDeployment {
 			     $entity = New-Object Microsoft.Xrm.Sdk.Entity -ArgumentList $entityName
 				 $_.value.PSObject.Properties | ForEach-Object -Process {
 				    $fieldName = $_.Name.Trim()
-					$value = $this.ReplaceTags($_.Value, $global:DestTagValues)
+					$value = $this.ReplaceTags($_.Value, $script:DestTagValues)
 					if($fieldName -ne "id") {
 						$this.SetField($entityName, $schema, $entity, $fieldName, $value)
 					}
@@ -311,9 +370,9 @@ class CDSDeployment {
 	
 	[void] ExportData([string] $FetchXml, [string] $DataFile)
 	{
-		write-host "Loading data..."
+		write-host "Exporting data to $DataFile..."
 		
-		$fetch = $this.ReplaceTags($FetchXml, $global:SourceTagValues)
+		$fetch = $this.ReplaceTags($FetchXml, $script:SourceTagValues)
 		$query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
 		$results = $this.SourceConn.RetrieveMultiple($query)
 
@@ -330,13 +389,12 @@ class CDSDeployment {
 
 		   
 			$_.Attributes | ForEach-Object -Process {
-			  $value | Add-Member -NotePropertyName $_.Key -NotePropertyValue $this.GetFieldValue($_.Value, $global:SourceTagValues)
+			  $value | Add-Member -NotePropertyName $_.Key -NotePropertyValue $this.GetFieldValue($_.Value, $script:SourceTagValues)
 			}
 			
 		}
 
 		$records | ConvertTo-Json | Out-File -FilePath $DataFile
-		write-host "Done!"
 	}
 	
 	[void] ExportSchema([string[]] $entityNames, [string] $schemaFile)
@@ -388,10 +446,12 @@ class CDSDeployment {
 		$schema | ConvertTo-Json | Out-File -FilePath $schemaFile
 	}
 
-	[void] InitializeDeployment([Switch] $forceUpdate, [string] $sourceConnectionString, [string] $destinationConnectionString)
+	[void] InitializeDeployment([string]$environmentFolder, [Switch] $forceUpdate, [string] $sourceConnectionString, [string] $destinationConnectionString)
 	{
+	    write-host "Initializing connections..."
+		$this.environmentFolder = $environmentFolder
 		$currentDir = Get-Location
-		$this.SolutionsFolder = Get-Location
+		$this.SolutionsFolder = $environmentFolder
 		$this.SolutionsFolder = "$($this.SolutionsFolder)\Solutions"
 		
 		cd .\PSModules
@@ -411,13 +471,12 @@ class CDSDeployment {
 		if($forceUpdate) { Remove-Item .\Microsoft.CrmSdk.XrmTooling.CrmConnector.PowerShell -Force -Recurse -ErrorAction Ignore }
 		if ($forceUpdate -OR !(Test-Path -Path .\Microsoft.CrmSdk.XrmTooling.CrmConnector.PowerShell\tools))
 		{
-		  write-host "installing nuget"
 		  ./nuget install Microsoft.CrmSdk.XrmTooling.CrmConnector.PowerShell -ExcludeVersion -O .\
 		}
 
 		#Register XRM cmdlets
 		cd .\Microsoft.CrmSdk.XrmTooling.CrmConnector.PowerShell\tools
-		.\RegisterXrmTooling.ps1
+		.\RegisterXrmTooling.ps1 *> $null
 		
 		cd "Microsoft.Xrm.Tooling.CrmConnector.PowerShell"
 		
@@ -427,7 +486,7 @@ class CDSDeployment {
 		#Register Helper class		
 		$assemblyDir = Get-Location
 		$refs = @("$assemblyDir\Microsoft.Xrm.Sdk.dll","System.Runtime.Serialization.dll","System.ServiceModel.dll")
-		Add-Type -TypeDefinition $script:HelperSource -ReferencedAssemblies $refs
+		Add-Type -TypeDefinition $script:HelperSource -ReferencedAssemblies $refs | Out-Null
 
 		cd $currentDir
 		
@@ -436,17 +495,17 @@ class CDSDeployment {
 		  New-Item -ItemType "directory" -Path $this.SolutionsFolder
 		}
 		
-		#$this.SourceConn = Custom-GetConnection $sourceConnectionString
-		#$this.DestConn = Custom-GetConnection $destinationConnectionString
+		#$this.SourceConn = Get-CustomConnection $sourceConnectionString
+		#$this.DestConn = Get-CustomConnection $destinationConnectionString
 		$this.SourceConn = Get-CrmConnection -ConnectionString $sourceConnectionString
 		$this.DestConn = Get-CrmConnection -ConnectionString $destinationConnectionString
 		
 		#start reading "tag" values
 	
 	    #Destination lookups
-		foreach($key in $global:TagLookups.keys){
-		  $fetch = $global:TagLookups[$key]
-		  $fetch = $this.ReplaceTags($fetch, $global:TagLookups)
+		foreach($key in $script:TagLookups.keys){
+		  $fetch = $script:TagLookups[$key]
+		  $fetch = $this.ReplaceTags($fetch, $script:TagLookups)
 		  $query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
 		  $results = $this.DestConn.RetrieveMultiple($query)
 		  $results.Entities | ForEach-Object -Process{
@@ -455,9 +514,9 @@ class CDSDeployment {
   	    }
 		
 		#Source lookups
-		foreach($key in $global:TagLookups.keys){
-		  $fetch = $global:TagLookups[$key]
-		  $fetch = $this.ReplaceTags($fetch, $global:TagLookups)
+		foreach($key in $script:TagLookups.keys){
+		  $fetch = $script:TagLookups[$key]
+		  $fetch = $this.ReplaceTags($fetch, $script:TagLookups)
 		  $query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
 		  $results = $this.SourceConn.RetrieveMultiple($query)
 		  $results.Entities | ForEach-Object -Process{
@@ -467,7 +526,7 @@ class CDSDeployment {
 		
 		#end reading "tag" values	
 		
-		
+		write-host "Connections ready"
 	}
 
 	[void] LoadModule ($m) {
