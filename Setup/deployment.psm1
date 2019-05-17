@@ -231,9 +231,8 @@ class CDSDeployment {
 
 	[void] SetField([string] $entityName, [PSObject] $schema, [PSObject] $entity, [string] $fieldName, [PSObject] $value)
 	{
-		
+		$ignore = $false
 		try{
-			$assigned = $false
 			if($value -eq $null){
 			   Set-Attribute $entity $fieldName $null
 			   return
@@ -247,6 +246,18 @@ class CDSDeployment {
 			
 			$value = $value.Trim()
 			$convValue = $value
+		
+			switch($fieldName){
+			    "createdon" {
+				    $fieldName = "overriddencreatedon"
+				}
+				"organizationid" {
+				    $ignore = $true
+				}
+				"isdisabled" {
+				    $ignore = $true 
+				}
+			}
 
 			switch($schema.attributes.$fieldName){
 			   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
@@ -282,11 +293,27 @@ class CDSDeployment {
 				"entityName"{
 				   $convValue = $value
 				}
+				"dateTime"{
+				   $convValue = [DateTime]::Parse($value)
+				}
+				"owner"{
+				   $ignore = $true
+				   $convValue = $null
+				}
+				"status" {
+				   $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value
+				}
+				"state" {
+				   $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value
+				}
 				default {
 				   $convValue = $value
 				}
 			}
-			Set-Attribute $entity $fieldName $convValue
+									
+			if($ignore -eq $false){
+			   Set-Attribute $entity $fieldName $convValue
+			}
 		}
 		catch{
 		    write-host "Error setting $fieldName to $value"

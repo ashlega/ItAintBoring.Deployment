@@ -11,7 +11,7 @@ pool:
 
 steps:
 - powershell: .\import.ps1       
-  workingDirectory: $(Build.Repository.LocalPath)\SampleProject
+  workingDirectory: $(Build.Repository.LocalPath)\Setup
   env: 
     ConnectionString: $(connectionString)
     SolutionName: $(solutionName)
