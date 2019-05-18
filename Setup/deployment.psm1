@@ -481,6 +481,10 @@ class CDSDeployment {
 		$this.SolutionsFolder = $environmentFolder
 		$this.SolutionsFolder = "$($this.SolutionsFolder)\Solutions"
 		
+		if (!(Test-Path -Path ".\PSModules")) {
+		  New-Item -ItemType "directory" -Path ".\PSModules"
+		}
+
 		cd .\PSModules
 		
 		#Get nuget
