@@ -240,8 +240,7 @@ class CDSDeployment {
 			
 			if($schema.attributes.$fieldName -eq $null)
 			{
-			   write-host "$entityName.$fieldName attribute is not defined in the schema"
-			   return
+			   throw "$entityName.$fieldName attribute is not defined in the schema"
 			}
 			
 			$ignore = $false
@@ -311,6 +310,7 @@ class CDSDeployment {
 		catch{
 		    write-host "Error setting $fieldName to $value"
 			write-host $_.Exception.Message
+			throw
 		}
 	}
 
