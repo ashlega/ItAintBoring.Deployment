@@ -10,8 +10,8 @@ pool:
   vmImage: 'vs2017-win2016'
 
 steps:
-- powershell: .\import.ps1       
-  workingDirectory: $(Build.Repository.LocalPath)\Setup
+- powershell: $(Build.Repository.LocalPath)\Setup\Projects\Demo\import.ps1       
+  workingDirectory: $(Build.Repository.LocalPath)\Setup\Projects\Demo
   env: 
     ConnectionString: $(connectionString)
     SolutionName: $(solutionName)
