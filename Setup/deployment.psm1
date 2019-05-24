@@ -108,7 +108,7 @@ function Get-CustomConnection($conString)
 
 function Get-EntityFilters()
 {
-	return [Microsoft.Xrm.Sdk.Metadata.EntityFilters]::Attributes
+	return [Microsoft.Xrm.Sdk.Metadata.EntityFilters]::Attributes + [Microsoft.Xrm.Sdk.Metadata.EntityFilters]::Relationships
 }
 
 function Get-AttributeTypeName($typeCode)
@@ -168,26 +168,24 @@ class CDSDeployment {
 	{
 		#assuming there is always an id - this is for configuration data after all
 		if($schema.isIntersect){
-		    if($entity.LogicalName -eq "teamroles")
+		    $firstRef = New-Object Microsoft.Xrm.Sdk.EntityReference -ArgumentList @($schema."Entity1LogicalName", $entity.attributes[$schema."Entity1IntersectAttribute"])   
+			$secondRef = New-Object Microsoft.Xrm.Sdk.EntityReference -ArgumentList @($schema."Entity2LogicalName", $entity.attributes[$schema."Entity2IntersectAttribute"])   
+			$request = New-Object Microsoft.Xrm.Sdk.Messages.AssociateRequest
+			$request.Target = $firstRef
+			$request.RelatedEntities = New-Object Microsoft.Xrm.Sdk.EntityReferenceCollection
+			$request.RelatedEntities.Add($secondRef)
+			$relEntityName = $entity.LogicalName
+			$request.Relationship = New-Object Microsoft.Xrm.Sdk.Relationship -ArgumentList @($schema."RelationshipName")
+			try
 			{
-			    $request = New-Object Microsoft.Xrm.Sdk.Messages.AssociateRequest
-			    $request.Target = New-Object Microsoft.Xrm.Sdk.EntityReference -ArgumentList @("role", $entity["roleid"])
-				$request.RelatedEntities = New-Object Microsoft.Xrm.Sdk.EntityReferenceCollection
-				
-				$teamRef = New-Object Microsoft.Xrm.Sdk.EntityReference -ArgumentList @("team", $entity["teamid"])
-				$request.RelatedEntities.Add($teamRef)
-				$request.Relationship = New-Object Microsoft.Xrm.Sdk.Relationship -ArgumentList @("teamroles_association")
-				try
-				{
-				  $conn.Execute($request)
-				}
-				catch
-				{
-				  if($_.Exception.Message.contains("Cannot insert duplicate key") -eq $false) {
-				    throw
-				  }
-				}
-    		}
+			  $conn.Execute($request)
+			}
+			catch
+			{
+			  if($_.Exception.Message.contains("Cannot insert duplicate key") -eq $false) {
+				throw
+			  }
+			}
 		}
 		else{
 			$recordExists = $this.CheckRecordExists($conn, $entity, $schema.isIntersect)
@@ -231,8 +229,9 @@ class CDSDeployment {
 
 	[void] SetField([string] $entityName, [PSObject] $schema, [PSObject] $entity, [string] $fieldName, [PSObject] $value)
 	{
-		$ignore = $false
+		
 		try{
+			$assigned = $false
 			if($value -eq $null){
 			   Set-Attribute $entity $fieldName $null
 			   return
@@ -246,18 +245,6 @@ class CDSDeployment {
 			
 			$value = $value.Trim()
 			$convValue = $value
-		
-			switch($fieldName){
-			    "createdon" {
-				    $fieldName = "overriddencreatedon"
-				}
-				"organizationid" {
-				    $ignore = $true
-				}
-				"isdisabled" {
-				    $ignore = $true 
-				}
-			}
 
 			switch($schema.attributes.$fieldName){
 			   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
@@ -293,27 +280,11 @@ class CDSDeployment {
 				"entityName"{
 				   $convValue = $value
 				}
-				"dateTime"{
-				   $convValue = [DateTime]::Parse($value)
-				}
-				"owner"{
-				   $ignore = $true
-				   $convValue = $null
-				}
-				"status" {
-				   $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value
-				}
-				"state" {
-				   $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value
-				}
 				default {
 				   $convValue = $value
 				}
 			}
-									
-			if($ignore -eq $false){
-			   Set-Attribute $entity $fieldName $convValue
-			}
+			Set-Attribute $entity $fieldName $convValue
 		}
 		catch{
 		    write-host "Error setting $fieldName to $value"
@@ -424,6 +395,14 @@ class CDSDeployment {
 		$records | ConvertTo-Json | Out-File -FilePath $DataFile
 	}
 	
+	[void] AddAttribute($object, $name, $value)
+	{
+	    if($object.$name -eq $null)
+		{
+			$object | Add-Member -NotePropertyName $name -NotePropertyValue $value
+		}
+	}
+	
 	[void] ExportSchema([string[]] $entityNames, [string] $schemaFile)
 	{
 
@@ -460,8 +439,17 @@ class CDSDeployment {
 			{
 			    $schema.$($request.LogicalName) | Add-Member -NotePropertyName "primaryIdAttribute" -NotePropertyValue ""
 			}
+						
 			
 			$schema.$($request.LogicalName).isIntersect = $response.EntityMetadata.IsIntersect 
+			if($response.EntityMetadata.IsIntersect -eq $true)
+			{
+			    $this.AddAttribute($schema.$($request.LogicalName), "Entity1IntersectAttribute", $response.EntityMetadata.ManyToManyRelationships[0].Entity1IntersectAttribute)
+				$this.AddAttribute($schema.$($request.LogicalName), "Entity1LogicalName", $response.EntityMetadata.ManyToManyRelationships[0].Entity1LogicalName)
+				$this.AddAttribute($schema.$($request.LogicalName), "Entity2IntersectAttribute", $response.EntityMetadata.ManyToManyRelationships[0].Entity2IntersectAttribute)
+				$this.AddAttribute($schema.$($request.LogicalName), "Entity2LogicalName", $response.EntityMetadata.ManyToManyRelationships[0].Entity2LogicalName)
+				$this.AddAttribute($schema.$($request.LogicalName), "RelationshipName", $response.EntityMetadata.ManyToManyRelationships[0].SchemaName)
+			}
 			$schema.$($request.LogicalName).attributes = $attributes
 			$schema.$($request.LogicalName).primaryIdAttribute = $response.EntityMetadata.PrimaryIdAttribute
 
