@@ -4,8 +4,8 @@
 Get-CDSSolution $global:SolutionName #-Managed
 
 #Export schema
-$entityNames = @("ita_deployedentity", "businessunit")
-Get-CDSSchema $entityNames "Data\schema.txt"
+#$entityNames = @("ita_deployedentity", "businessunit")
+#Get-CDSSchema $entityNames "Data\schema.txt"
 
 #Export data
 
@@ -23,6 +23,9 @@ $fetch = @'
 <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
   <entity name="businessunit">
     <all-attributes />
+	<filter type="and">
+      <condition attribute="name" operator="eq" value="Test" />
+    </filter>
   </entity>
 </fetch>
 '@

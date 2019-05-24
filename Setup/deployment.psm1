@@ -51,8 +51,8 @@ function Get-CDSSchema($entityNames, $fileName){
    $script:cds.ExportSchema($entityNames, $fileName)
 }
 
-function Push-CDSData($fileName, $schemaFileName){
-   $script:cds.ImportData($fileName, $schemaFileName)
+function Push-CDSData($fileName){
+   $script:cds.ImportData($fileName)
 }
 
 function Get-CDSData{
@@ -143,10 +143,11 @@ function Get-AttributeTypeName($typeCode)
 
 class CDSDeployment {
 	
-	[string] $environmentFolder = $null
+	[string]   $environmentFolder = $null
 	[PSObject] $SourceConn = $null
 	[PSObject] $DestConn = $null
-	[string]   $SolutionsFolder = ""    
+	[string]   $SolutionsFolder = "" 
+    [PSObject] $schema = $null
 
 	[bool] CheckRecordExists([PSObject] $conn, [PSObject] $entity, $isIntersect)
 	{
@@ -243,9 +244,15 @@ class CDSDeployment {
 			   return
 			}
 			
+			$ignore = $false
 			$value = $value.Trim()
 			$convValue = $value
 
+            
+            switch($fieldName){
+			   "createdon" { $fieldName = "overriddencreatedon" }
+			}
+			
 			switch($schema.attributes.$fieldName){
 			   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
 			   "multiSelectOptionSet" { 
@@ -261,9 +268,11 @@ class CDSDeployment {
 					$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValueCollection 
 					$convValue.AddRange($valueList)
 				}
+				
 				"money" {
 				   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
 				}
+				
 				"bool" {
 				   $convValue = [System.Boolean]::Parse($value)
 				}
@@ -277,14 +286,27 @@ class CDSDeployment {
 				"guid"{
 				   $convValue = [System.Guid]::Parse($value)
 				}
+				
 				"entityName"{
 				   $convValue = $value
 				}
+				"dateTime"{
+				    $convValue = [DateTime]::Parse($value)
+				}
+				
+				"owner"  { $ignore = $true }
+				"status" { $ignore = $true }
+			    "state"  { $ignore = $true }
+				
+				
 				default {
 				   $convValue = $value
 				}
 			}
-			Set-Attribute $entity $fieldName $convValue
+			if($ignore -ne $true)
+			{
+			    Set-Attribute $entity $fieldName $convValue
+		    }
 		}
 		catch{
 		    write-host "Error setting $fieldName to $value"
@@ -335,17 +357,19 @@ class CDSDeployment {
 	   return $val;
 	}
 	
-	[void] ImportData([string] $DataFile, [string] $SchemaFile)
+	[void] ImportData([string] $DataFile)
 	{
 		write-host "Importing data from $dataFile..."
 		
-		$cdsSchema = Get-Content "$SchemaFile" | Out-String | ConvertFrom-Json 
+		#$cdsSchema = Get-Content "$SchemaFile" | Out-String | ConvertFrom-Json 
 		$json = Get-Content "$DataFile" | Out-String | ConvertFrom-Json 
 	  
 	    $json | ForEach-Object -Process {
 			$entityName = $_.entityName
-			$schema = $cdsSchema.$entityName
-			if($schema -eq $null){
+			$this.LoadSchema($entityName, $this.DestConn)
+			
+			$entitySchema = $this.schema.$entityName
+			if($entitySchema -eq $null){
 				write-host "There is no schema for $entityName"
 			}
 		    else {
@@ -354,13 +378,13 @@ class CDSDeployment {
 				    $fieldName = $_.Name.Trim()
 					$value = $this.ReplaceTags($_.Value, $script:DestTagValues)
 					if($fieldName -ne "id") {
-						$this.SetField($entityName, $schema, $entity, $fieldName, $value)
+						$this.SetField($entityName, $entitySchema, $entity, $fieldName, $value)
 					}
 					else{
 						$entity.id = $value
 					}
 				 }
-				 $this.UpsertRecord($this.DestConn, $entity, $schema)
+				 $this.UpsertRecord($this.DestConn, $entity, $entitySchema)
 			}
 		}
 		
@@ -403,62 +427,68 @@ class CDSDeployment {
 		}
 	}
 	
+	[void] LoadSchema([string] $entityName, [PSObject] $conn)
+	{
+	    if($this.schema -eq $null)
+		{
+		    $this.schema = New-Object Object
+		}
+	    $request = New-Object Microsoft.Xrm.Sdk.Messages.RetrieveEntityRequest
+		$request.EntityFilters = Get-EntityFilters
+		$request.LogicalName = $entityName
+		$response = $conn.Execute($request)
+		$attributes = New-Object Object
+		if($this.schema.$($request.LogicalName) -eq $null)
+		{
+			$entityObject = New-Object Object
+			$this.schema | Add-Member -NotePropertyName $request.LogicalName -NotePropertyValue $entityObject
+		}
+		
+		if($this.schema.$($request.LogicalName).attributes -eq $null)
+		{
+			$this.schema.$($request.LogicalName) | Add-Member -NotePropertyName "attributes" -NotePropertyValue $attributes
+		}
+		
+		if($this.schema.$($request.LogicalName).isIntersect -eq $null)
+		{
+			$this.schema.$($request.LogicalName) | Add-Member -NotePropertyName "isIntersect" -NotePropertyValue $false
+		}
+		
+		if($this.schema.$($request.LogicalName).primaryIdAttribute -eq $null)
+		{
+			$this.schema.$($request.LogicalName) | Add-Member -NotePropertyName "primaryIdAttribute" -NotePropertyValue ""
+		}
+		
+		$this.schema.$($request.LogicalName).isIntersect = $response.EntityMetadata.IsIntersect 
+		if($response.EntityMetadata.IsIntersect -eq $true)
+		{
+			$this.AddAttribute($this.schema.$($request.LogicalName), "Entity1IntersectAttribute", $response.EntityMetadata.ManyToManyRelationships[0].Entity1IntersectAttribute)
+			$this.AddAttribute($this.schema.$($request.LogicalName), "Entity1LogicalName", $response.EntityMetadata.ManyToManyRelationships[0].Entity1LogicalName)
+			$this.AddAttribute($this.schema.$($request.LogicalName), "Entity2IntersectAttribute", $response.EntityMetadata.ManyToManyRelationships[0].Entity2IntersectAttribute)
+			$this.AddAttribute($this.schema.$($request.LogicalName), "Entity2LogicalName", $response.EntityMetadata.ManyToManyRelationships[0].Entity2LogicalName)
+			$this.AddAttribute($this.schema.$($request.LogicalName), "RelationshipName", $response.EntityMetadata.ManyToManyRelationships[0].SchemaName)
+		}
+		$this.schema.$($request.LogicalName).attributes = $attributes
+		$this.schema.$($request.LogicalName).primaryIdAttribute = $response.EntityMetadata.PrimaryIdAttribute
+
+		$response.EntityMetadata.Attributes | ForEach-Object -Process {
+			$typeName = Get-AttributeTypeName $_.AttributeTypeName
+			$attributes | Add-Member -NotePropertyName $_.LogicalName -NotePropertyValue $typeName
+		}
+	}
+	
 	[void] ExportSchema([string[]] $entityNames, [string] $schemaFile)
 	{
-
-	   
 		write-host "Exporting schema"
-		$schema = New-Object Object
+		$this.schema = New-Object Object
 		if(Test-Path -Path $schemaFile){
-		   $schema = Get-Content "$schemaFile" | Out-String | ConvertFrom-Json 
+		   $this.schema = Get-Content "$schemaFile" | Out-String | ConvertFrom-Json 
 		}
 
 		$entityNames | ForEach-Object -Process {
-			$request = New-Object Microsoft.Xrm.Sdk.Messages.RetrieveEntityRequest
-			$request.EntityFilters = Get-EntityFilters
-			$request.LogicalName = $_
-			$response = $this.sourceConn.Execute($request)
-			$attributes = New-Object Object
-			if($schema.$($request.LogicalName) -eq $null)
-			{
-			    $entityObject = New-Object Object
-			    $schema | Add-Member -NotePropertyName $request.LogicalName -NotePropertyValue $entityObject
-			}
-			
-			if($schema.$($request.LogicalName).attributes -eq $null)
-			{
-			    $schema.$($request.LogicalName) | Add-Member -NotePropertyName "attributes" -NotePropertyValue $attributes
-			}
-			
-			if($schema.$($request.LogicalName).isIntersect -eq $null)
-			{
-			    $schema.$($request.LogicalName) | Add-Member -NotePropertyName "isIntersect" -NotePropertyValue $false
-			}
-			
-			if($schema.$($request.LogicalName).primaryIdAttribute -eq $null)
-			{
-			    $schema.$($request.LogicalName) | Add-Member -NotePropertyName "primaryIdAttribute" -NotePropertyValue ""
-			}
-						
-			
-			$schema.$($request.LogicalName).isIntersect = $response.EntityMetadata.IsIntersect 
-			if($response.EntityMetadata.IsIntersect -eq $true)
-			{
-			    $this.AddAttribute($schema.$($request.LogicalName), "Entity1IntersectAttribute", $response.EntityMetadata.ManyToManyRelationships[0].Entity1IntersectAttribute)
-				$this.AddAttribute($schema.$($request.LogicalName), "Entity1LogicalName", $response.EntityMetadata.ManyToManyRelationships[0].Entity1LogicalName)
-				$this.AddAttribute($schema.$($request.LogicalName), "Entity2IntersectAttribute", $response.EntityMetadata.ManyToManyRelationships[0].Entity2IntersectAttribute)
-				$this.AddAttribute($schema.$($request.LogicalName), "Entity2LogicalName", $response.EntityMetadata.ManyToManyRelationships[0].Entity2LogicalName)
-				$this.AddAttribute($schema.$($request.LogicalName), "RelationshipName", $response.EntityMetadata.ManyToManyRelationships[0].SchemaName)
-			}
-			$schema.$($request.LogicalName).attributes = $attributes
-			$schema.$($request.LogicalName).primaryIdAttribute = $response.EntityMetadata.PrimaryIdAttribute
-
-			$response.EntityMetadata.Attributes | ForEach-Object -Process {
-			    $typeName = Get-AttributeTypeName $_.AttributeTypeName
-			    $attributes | Add-Member -NotePropertyName $_.LogicalName -NotePropertyValue $typeName
-			}
+			$this.LoadSchema($_, $this.sourceConn)
 		}
-		$schema | ConvertTo-Json | Out-File -FilePath $schemaFile
+		$this.schema | ConvertTo-Json | Out-File -FilePath $schemaFile
 	}
 
 	[void] InitializeDeployment([string]$environmentFolder, [Switch] $forceUpdate, [string] $sourceConnectionString, [string] $destinationConnectionString)
