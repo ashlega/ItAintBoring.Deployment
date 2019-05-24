@@ -5,6 +5,5 @@ cd $PSScriptRoot
 cd $currentFolder
 .\settings.ps1
 cd $PSScriptRoot
-write-host $PSScriptRoot
 Initialize-CDSConnections -EnvironmentFolder $currentFolder -ForceUpdate -SourceConnectionString $global:SourceConnectionString -DestinationConnectionString $global:DestinationConnectionString
 cd $currentFolder
