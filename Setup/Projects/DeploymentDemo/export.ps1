@@ -1,7 +1,7 @@
 ..\..\loader.ps1
 
 #Export solution
-Get-CDSSolution $global:SolutionName #-Managed
+Get-CDSSolution $global:SolutionName -Managed
 
 #Export schema
 #$entityNames = @("ita_deployedentity", "businessunit")

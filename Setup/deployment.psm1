@@ -88,9 +88,60 @@ function Get-CDSSolution([string] $solutionName, [switch] $Managed = $false)
   $script:cds.ExportSolution($solutionName, $Managed)
 }
 
-function Push-CDSSolution([string] $fileName)
+function Push-CDSSolution()
 {
-  $script:cds.ImportSolution($fileName)
+  param(
+	[string]$solutionName, #Solution name
+	[switch] $Managed = $false,
+	[bool]$override, #If set to 1 will override the solution even if a solution with same version exists
+	[bool]$publishWorkflows, #Will publish workflows during import
+	[bool]$overwriteUnmanagedCustomizations, #Will overwrite unmanaged customizations
+	[bool]$skipProductUpdateDependencies, #Will skip product update dependencies
+	[switch]$holdingSolution = $false #Imports by creating a holding/upgrade solution
+	#[bool]$ImportAsync = $false, #Import solution in Async Mode, recommended
+	#[int]$AsyncWaitTimeout #Optional - Async wait timeout in seconds
+  )
+  
+    write-host "Importing solution: $solutionName"
+		
+	if(!$Managed)
+	{
+	  $fileBytes = [System.IO.File]::ReadAllBytes("$($script:cds.SolutionsFolder)\$solutionName.zip")
+	}
+	else{
+	  $fileBytes = [System.IO.File]::ReadAllBytes("$($script:cds.SolutionsFolder)\${solutionName}_managed.zip")
+	}
+		
+	
+
+	$impSolReq = [Microsoft.Crm.Sdk.Messages.ImportSolutionRequest]::New()
+	$impSolReq.CustomizationFile = $fileBytes
+    $impSolReq.PublishWorkflows = $publishWorkflows
+	$impSolReq.OverwriteUnmanagedCustomizations = $overwriteUnmanagedCustomizations
+	$impSolReq.SkipProductUpdateDependencies = $skipProductUpdateDependencies
+	$impSolReq.HoldingSolution = $holdingSolution
+	
+	$script:cds.DestConn.Execute($impSolReq)
+	
+	if(!$Managed)
+	{
+		write-host "Publishing customizations"
+		$script:cds.PublishAll()
+	}
+		
+}
+
+function Push-ApplySolutionUpgrades()
+{
+    param(
+	  [string]$solutionName #Solution name
+    )
+  
+    write-host "Applying solution upgrades: $solutionName"
+	$promoteReq = [Microsoft.Crm.Sdk.Messages.DeleteAndPromoteRequest]::New()
+	$promoteReq.UniqueName = $solutionName
+	$result = $script:cds.DestConn.Execute($promoteReq)
+	write-host "Publishing customizations"
 }
 
 #A workaround for PSObject wrapping/unwrapping
@@ -203,11 +254,8 @@ class CDSDeployment {
 
 	[void] ImportSolution([string] $solutionName)
 	{
-		$impId = New-Object Guid
-		write-host "Importing solution: $solutionName"
-		$this.DestConn.ImportSolutionToCrm("$($this.SolutionsFolder)\$solutionName.zip",[ref] $impId)
-		write-host "Publishing customizations"
-		$this.PublishAll()
+		#$impId = New-Object Guid
+		
 	}
 
 	[void] ExportSolution([string] $solutionName, [switch] $Managed = $false)

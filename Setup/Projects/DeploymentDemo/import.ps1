@@ -1,7 +1,8 @@
 ..\..\loader.ps1
 
 			
-Push-CDSSolution $global:SolutionName
+Push-CDSSolution $global:SolutionName -Managed -HoldingSolution
+Push-ApplySolutionUpgrades $global:SolutionName
 
 Push-CDSData "Data\deployedentity.txt" 
 Push-CDSData "Data\businessunit.txt" 
