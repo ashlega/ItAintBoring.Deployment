@@ -2,7 +2,7 @@
 
 			
 Push-CDSSolution $global:SolutionName -Managed -HoldingSolution
-Push-ApplySolutionUpgrades $global:SolutionName
+Push-ApplySolutionUpdates $global:SolutionName
 
 Push-CDSData "Data\deployedentity.txt" 
 Push-CDSData "Data\businessunit.txt" 

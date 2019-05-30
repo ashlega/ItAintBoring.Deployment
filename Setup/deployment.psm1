@@ -131,7 +131,7 @@ function Push-CDSSolution()
 		
 }
 
-function Push-ApplySolutionUpgrades()
+function Push-ApplySolutionUpdates()
 {
     param(
 	  [string]$solutionName #Solution name
