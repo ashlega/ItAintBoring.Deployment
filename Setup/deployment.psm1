@@ -88,6 +88,18 @@ function Get-CDSSolution([string] $solutionName, [switch] $Managed = $false)
   $script:cds.ExportSolution($solutionName, $Managed)
 }
 
+function Get-CDSSolutionExists()
+{
+    param(
+      [string]$solutionName = $null
+	)
+	$query  = [Microsoft.Xrm.Sdk.Query.QueryByAttribute]::New("solution")
+	$query.AddAttributeValue("uniquename", $solutionName)
+	$results = $cds.DestConn.RetrieveMultiple($query)
+	return $results.Entities.Count -gt 0   
+   
+}
+
 function Push-CDSSolution()
 {
   param(
@@ -119,6 +131,9 @@ function Push-CDSSolution()
     $impSolReq.PublishWorkflows = $publishWorkflows
 	$impSolReq.OverwriteUnmanagedCustomizations = $overwriteUnmanagedCustomizations
 	$impSolReq.SkipProductUpdateDependencies = $skipProductUpdateDependencies
+	
+	$targetSolutionExists = Get-CDSSolutionExists($solutionName)
+	
 	$impSolReq.HoldingSolution = $holdingSolution
 	
 	$script:cds.DestConn.Execute($impSolReq)
