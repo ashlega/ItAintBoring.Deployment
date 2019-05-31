@@ -1,9 +1,14 @@
-$currentFolder = Get-Location 
+param(
+    [string] $envFolder
+)
+if( -not $envFolder) {
+    $envFolder = Get-Location
+}
 
 cd $PSScriptRoot
 .\loadmodules.ps1
-cd $currentFolder
+cd $envFolder
 .\settings.ps1
 cd $PSScriptRoot
-Initialize-CDSConnections -EnvironmentFolder $currentFolder -ForceUpdate -SourceConnectionString $global:SourceConnectionString -DestinationConnectionString $global:DestinationConnectionString
-cd $currentFolder
+Initialize-CDSConnections -EnvironmentFolder $envFolder -ForceUpdate -SourceConnectionString $global:SourceConnectionString -DestinationConnectionString $global:DestinationConnectionString
+cd $envFolder
