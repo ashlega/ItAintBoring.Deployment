@@ -257,7 +257,18 @@ class CDSDeployment {
 		else{
 			$recordExists = $this.CheckRecordExists($conn, $entity, $schema.isIntersect)
 			if($recordExists) { $conn.Update($entity) }
-			else { $conn.Create($entity) }
+			else { 
+			    try
+				{
+				  $conn.Create($entity) 
+				}
+				catch
+				{
+				   write-host $_.Exception.Message
+				   throw
+				} 
+			   
+			}
 		}
 	}
 
@@ -354,6 +365,15 @@ class CDSDeployment {
 				}
 				"dateTime"{
 				    $convValue = [DateTime]::Parse($value)
+				}
+				"integer"{
+				    $convValue = [int]::Parse($value)
+				}
+				"double"{
+				    $convValue = [double]::Parse($value)
+				}
+				"decimal"{
+				    $convValue = [decimal]::Parse($value)
 				}
 				
 				"owner"  { $ignore = $true }
