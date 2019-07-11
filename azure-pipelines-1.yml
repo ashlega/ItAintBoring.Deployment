@@ -36,7 +36,6 @@ steps:
 
 - powershell: |
     tools\\nuget.exe install ItAintBoring.CDS.PowerShell -O Scripts
-    md "Scripts"
     $cdsPowerShellFolder = Get-ChildItem Scripts | Where-Object {$_.Name -match 'ItAintBoring.CDS.PowerShell.'}
     move "Scripts\\$cdsPowerShellFolder\\*.*" "Scripts"
   displayName: 'Install CDS Powershell'
