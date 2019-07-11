@@ -1,0 +1,87 @@
+
+name: $(BuildDefinitionName)-$(Date:yyyyMMdd).$(Rev:.r)
+
+trigger:
+- master
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+
+steps:
+
+- checkout: self
+  persistCredentials: true
+
+- powershell: |
+    git checkout master
+  displayName: 'Checking out master'
+
+- script: md tools
+  displayName: 'Create tools directory'
+
+- powershell: |
+    Invoke-WebRequest `
+      -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe `
+      -OutFile tools\\nuget.exe
+  displayName: 'Download nuget.exe'
+
+- powershell: |
+    tools\\nuget.exe install Microsoft.CrmSdk.CoreTools -O tools
+    md "tools\\CoreTools"
+    $coreToolsFolder = Get-ChildItem tools | Where-Object {$_.Name -match 'Microsoft.CrmSdk.CoreTools.'}
+    move "tools\\$coreToolsFolder\\content\\bin\\coretools\\*.*" "tools\\CoreTools"
+    Remove-Item "tools\\$coreToolsFolder" -Force -Recurse
+  displayName: 'Install CoreTools'
+
+- powershell: |
+    tools\\nuget.exe Install-Package ItAintBoring.CDS.PowerShell -O Scripts
+    md "Scripts"
+    $cdsPowerShellFolder = Get-ChildItem Scripts | Where-Object {$_.Name -match 'ItAintBoring.CDS.PowerShell.'}
+    move "Scripts\\$cdsPowerShellFolder\\*.*" "Scripts"
+  displayName: 'Install CoreTools'
+
+
+- powershell: |
+    .\export.ps1
+  displayName: 'Export Solution'
+  env:
+    ConnectionString: $(SourceConnectionString)
+    SolutionName: 'Demo'
+
+#- task: PublishBuildArtifacts@1
+#  inputs:
+#    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#    artifactName: drop
+
+- powershell: |
+    Start-Process tools/CoreTools/SolutionPackager.exe `
+    -ArgumentList `
+      "/action: Extract", `
+      "/zipfile: Solutions\Demo.zip", `
+      "/folder: Solutions\Extracted\Demo", `
+      "/packagetype: Both" `
+    -Wait `
+    -NoNewWindow
+  workingDirectory: $(Build.Repository.LocalPath)
+  displayName: 'Solution Packager: extract solution'
+
+
+
+- powershell: |
+    Remove-Item "tools" -Force -Recurse
+    Remove-Item "Scripts" -Force -Recurse
+  displayName: 'Cleanup'
+
+
+
+- powershell: |
+    git config user.email "info@treecatsoftware.com"
+    git config user.name "Demo Build Agent"
+    git add .
+    git commit -m "Commit from Azure"
+    git push origin master
+  workingDirectory: $(Build.Repository.LocalPath)
+  displayName: 'Commiting extracted files'
+
+  
