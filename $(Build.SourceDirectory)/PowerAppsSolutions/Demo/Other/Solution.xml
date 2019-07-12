@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml version="9.1.0.6619" SolutionPackageVersion="9.1" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SolutionManifest>
+    <UniqueName>Demo</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="Demo" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions />
+    <Version>1.0.0.0</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>itaintboring</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="ItAintBoring" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions>
+        <Description description="ItAintBoring" languagecode="1033" />
+      </Descriptions>
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl>http://www.itaintboring.com</SupportingWebsiteUrl>
+      <CustomizationPrefix>ita_</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>85587</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="account" behavior="1" />
+      <RootComponent type="1" schemaName="ita_checklisttype" behavior="0" />
+      <RootComponent type="1" schemaName="new_test" behavior="0" />
+      <RootComponent type="20" id="{dd63d170-a57d-e911-a980-000d3af49211}" behavior="0" />
+      <RootComponent type="29" id="{11b11b8b-a28e-e911-a98a-000d3af49373}" behavior="0" />
+      <RootComponent type="29" id="{3d581e8a-7075-e911-a97e-000d3af497c0}" behavior="0" />
+      <RootComponent type="60" id="{34b85efd-ca2f-4b58-b193-6995474c99c8}" behavior="0" />
+      <RootComponent type="60" id="{48d7845f-3fd7-46a0-846e-8274b4d5e6f0}" behavior="0" />
+      <RootComponent type="60" id="{75885719-5a25-4393-87b9-ab6acfebc3de}" behavior="0" />
+      <RootComponent type="62" schemaName="ita_SimpleApp" behavior="0" />
+      <RootComponent type="80" schemaName="ita_SimpleApp" behavior="0" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required key="0" type="1" schemaName="ita_relateddemo" displayName="Related Demo" solution="Active" />
+        <Dependent key="1" type="62" schemaName="ita_SimpleApp" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="2" type="1" schemaName="ita_checklist" displayName="Check List" solution="Active" />
+        <Dependent key="1" type="62" schemaName="ita_SimpleApp" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="3" type="1" schemaName="ita_webresourcedemo" displayName="Web Resource Demo" solution="Active" />
+        <Dependent key="1" type="62" schemaName="ita_SimpleApp" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="0" type="1" schemaName="ita_relateddemo" displayName="Related Demo" solution="Active" />
+        <Dependent key="4" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="3" type="1" schemaName="ita_webresourcedemo" displayName="Web Resource Demo" solution="Active" />
+        <Dependent key="4" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="2" type="1" schemaName="ita_checklist" displayName="Check List" solution="Active" />
+        <Dependent key="4" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="3" type="1" schemaName="ita_webresourcedemo" displayName="Web Resource Demo" solution="Active" />
+        <Dependent key="5" type="1" schemaName="ita_checklisttype" displayName="Check List Type" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="2" type="1" schemaName="ita_checklist" displayName="Check List" solution="Active" />
+        <Dependent key="5" type="1" schemaName="ita_checklisttype" displayName="Check List Type" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="6" type="1" schemaName="ita_testcontactbpf" displayName="Test Contact BPF" solution="Active" />
+        <Dependent key="7" type="1" schemaName="new_test" displayName="Test" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="8" type="61" schemaName="ita_/html/checkList.html" displayName="ita_/html/checkList.html" solution="Active" />
+        <Dependent key="9" type="60" displayName="3_Information" parentDisplayName="Test" id="{34b85efd-ca2f-4b58-b193-6995474c99c8}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="8" type="61" schemaName="ita_/html/checkList.html" displayName="ita_/html/checkList.html" solution="Active" />
+        <Dependent key="10" type="60" displayName="2_Information" parentDisplayName="Test" id="{75885719-5a25-4393-87b9-ab6acfebc3de}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="11" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
+        <Dependent key="9" type="60" displayName="3_Information" parentDisplayName="Test" id="{34b85efd-ca2f-4b58-b193-6995474c99c8}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="11" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
+        <Dependent key="12" type="60" displayName="Information" parentDisplayName="Test" id="{48d7845f-3fd7-46a0-846e-8274b4d5e6f0}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="8" type="61" schemaName="ita_/html/checkList.html" displayName="ita_/html/checkList.html" solution="Active" />
+        <Dependent key="12" type="60" displayName="Information" parentDisplayName="Test" id="{48d7845f-3fd7-46a0-846e-8274b4d5e6f0}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="11" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
+        <Dependent key="10" type="60" displayName="2_Information" parentDisplayName="Test" id="{75885719-5a25-4393-87b9-ab6acfebc3de}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="13" type="61" schemaName="msdyn_/Images/AppModule_Default_Icon.png" displayName="msdyn_/Images/AppModule_Default_Icon.png" solution="AppModuleWebResources (2.5)" />
+        <Dependent key="4" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>
