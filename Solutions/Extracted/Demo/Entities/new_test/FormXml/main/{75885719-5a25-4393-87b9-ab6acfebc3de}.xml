@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{75885719-5a25-4393-87b9-ab6acfebc3de}</formid>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form shownavigationbar="true" showImage="false" maxWidth="1920">
+      <tabs>
+        <tab verticallayout="true" id="{66f9427b-f163-4d92-a65a-4ba843c5809e}" IsUserDefined="1" labelid="{b882fe69-9abf-4199-bac7-a1508a4d40bd}">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{26c9fc15-64c6-4b78-9a50-7cea18d3a72c}" labelid="{d0f0da66-cdd3-4b0d-86e8-0ff4b1ca02ae}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{b889ed43-c90a-ade4-06d2-633b3aa07488}" showlabel="true" locklevel="0" labelid="{16437d6f-613e-4351-8a75-e6790f3a781c}">
+                        <labels>
+                          <label description="Name" languagecode="1033" />
+                        </labels>
+                        <control id="new_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="new_name" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{a5cb1891-ceb4-1591-7429-a3654769d7ad}" showlabel="true" locklevel="0" labelid="{b7be2c9b-5143-4a51-ae92-f3e8ac21292f}">
+                        <labels>
+                          <label description="Drop Down" languagecode="1033" />
+                        </labels>
+                        <control id="new_dropdown" classid="{3EF39988-22BB-4f0b-BBBE-64B5A3748AEE}" datafieldname="new_dropdown" disabled="false" uniqueid="{d28466e9-d02b-7310-55ca-1a473e6464a4}" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{eaff68d6-467d-4e73-8c24-400458e618c5}" labelid="{16d0c93e-13b2-4614-9fcd-8f85e0ea0298}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+        <tab name="tab_2" id="{d2890a53-8030-c761-c1d9-e8474701aea3}" IsUserDefined="0" locklevel="0" showlabel="true" expanded="true" labelid="{81d48257-bf03-4f87-9612-76e3ac607f62}">
+          <labels>
+            <label description="Check List" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="tab_2_section_1" showlabel="false" showbar="false" locklevel="0" id="{313324e8-1abc-4aac-50e8-9aa07bba0944}" IsUserDefined="0" layout="varwidth" columns="1" labelwidth="115" labelid="{f3856e67-5731-4ee3-84ba-f7a43d3226a3}">
+                  <labels>
+                    <label description="Section" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{2d42b0d8-eae9-3bae-56e7-b1a7b48d30b9}" showlabel="false" colspan="1" auto="false" rowspan="10" labelid="{fb0b9334-2ff0-4182-aecb-6d550d5a4ccc}">
+                        <labels>
+                          <label description="Check List" languagecode="1033" />
+                        </labels>
+                        <control id="WebResource_checklist" classid="{9FDF5F91-88B1-47f4-AD53-C11EFC01A01D}">
+                          <parameters>
+                            <Url>ita_/html/checkList.html</Url>
+                            <PassParameters>true</PassParameters>
+                            <ShowOnMobileClient>false</ShowOnMobileClient>
+                            <Security>false</Security>
+                            <Scrolling>auto</Scrolling>
+                            <Border>true</Border>
+                            <WebResourceId>{8AE3FAD3-575E-E911-A980-000D3AF49211}</WebResourceId>
+                          </parameters>
+                        </control>
+                        <events>
+                          <event name="onload" application="false">
+                            <dependencies />
+                          </event>
+                        </events>
+                      </cell>
+                    </row>
+                    <row />
+                    <row />
+                    <row />
+                    <row />
+                    <row />
+                    <row />
+                    <row />
+                    <row />
+                    <row />
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+      <header id="{392adf4e-be21-4bc3-bd1d-68e8ea12739c}" columns="111">
+        <rows>
+          <row>
+            <cell id="{dcbcb174-ac48-1c31-d6dc-461723951b37}" showlabel="true" locklevel="0" labelid="{ad71e2d9-bf9f-455c-8c73-840684813430}">
+              <labels>
+                <label description="Name" languagecode="1033" />
+              </labels>
+              <control id="header_new_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="new_name" disabled="false" />
+            </cell>
+            <cell id="{380358b0-5e67-44da-a41e-ba61b6c3eda6}" showlabel="false" labelid="{5c64d2b7-85b7-4f20-a6e5-5ca2da9b7cdd}">
+              <labels>
+                <label description="" languagecode="1033" />
+              </labels>
+            </cell>
+            <cell id="{fd29be13-f3d9-45b0-897e-6720375ac497}" showlabel="false" labelid="{b9608817-ef97-44da-9fa0-0d4862da054d}">
+              <labels>
+                <label description="" languagecode="1033" />
+              </labels>
+            </cell>
+          </row>
+        </rows>
+      </header>
+      <Navigation>
+        <NavBar>
+          <NavBarItem Id="navOffice365Groups" Icon="$webresource:msdyn_/OfficeGroups/img/groups_nav_32.png" Url="$webresource:msdyn_/OfficeGroups/OfficeGroups.html" Area="Info" Client="Web" PassParams="1" AvailableOffline="false" Sequence="0">
+            <Titles>
+              <Title LCID="1033" Text="Office 365 Groups" />
+            </Titles>
+          </NavBarItem>
+        </NavBar>
+        <NavBarAreas>
+          <NavBarArea Id="Info">
+            <Titles>
+              <Title LCID="1033" Text="Common" />
+            </Titles>
+          </NavBarArea>
+          <NavBarArea Id="Sales">
+            <Titles>
+              <Title LCID="1033" Text="Sales" />
+            </Titles>
+          </NavBarArea>
+          <NavBarArea Id="Service">
+            <Titles>
+              <Title LCID="1033" Text="Service" />
+            </Titles>
+          </NavBarArea>
+          <NavBarArea Id="Marketing">
+            <Titles>
+              <Title LCID="1033" Text="Marketing" />
+            </Titles>
+          </NavBarArea>
+          <NavBarArea Id="ProcessCenter">
+            <Titles>
+              <Title LCID="1033" Text="Process Sessions" />
+            </Titles>
+          </NavBarArea>
+        </NavBarAreas>
+      </Navigation>
+      <controlDescriptions />
+      <formLibraries>
+        <Library name="new_test.js" libraryUniqueId="{e7d6c492-5465-5552-c009-25bd0ad04ae7}" />
+      </formLibraries>
+      <events>
+        <event name="onchange" application="false" active="false" attribute="new_dropdown">
+          <Handlers>
+            <Handler functionName="TestAlert" libraryName="new_test.js" handlerUniqueId="{e2ac39dc-2641-0e81-161d-62a41913a094}" enabled="true" parameters="" passExecutionContext="false" />
+          </Handlers>
+        </event>
+      </events>
+      <DisplayConditions Order="1">
+        <Role Id="{DD63D170-A57D-E911-A980-000D3AF49211}" />
+        <Role Id="{627090ff-40a3-4053-8790-584edc5be201}" />
+        <Role Id="{119f245c-3cc8-4b62-b31c-d1a046ced15d}" />
+      </DisplayConditions>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="2_Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>
