@@ -88,6 +88,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="AzureDevOps\UCI\CreateTag.cs" />
     <Compile Include="AzureDevOps\UCI\CreateAccount.cs" />
     <Compile Include="SharedAPI\AzureInsights\OpenLead.cs" />
     <Compile Include="SharedAPI\BrowserTests\BrowserTests.cs" />
