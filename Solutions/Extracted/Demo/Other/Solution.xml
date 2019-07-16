@@ -106,56 +106,56 @@
         <Dependent key="1" type="62" schemaName="ita_SimpleApp" />
       </MissingDependency>
       <MissingDependency>
+        <Required key="3" type="1" schemaName="ita_webresourcedemo" displayName="Web Resource Demo" solution="Active" />
+        <Dependent key="4" type="1" schemaName="ita_checklisttype" displayName="Check List Type" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="2" type="1" schemaName="ita_checklist" displayName="Check List" solution="Active" />
+        <Dependent key="4" type="1" schemaName="ita_checklisttype" displayName="Check List Type" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="5" type="1" schemaName="ita_testcontactbpf" displayName="Test Contact BPF" solution="Active" />
+        <Dependent key="6" type="1" schemaName="new_test" displayName="Test" />
+      </MissingDependency>
+      <MissingDependency>
         <Required key="0" type="1" schemaName="ita_relateddemo" displayName="Related Demo" solution="Active" />
-        <Dependent key="4" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
+        <Dependent key="7" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
       </MissingDependency>
       <MissingDependency>
         <Required key="3" type="1" schemaName="ita_webresourcedemo" displayName="Web Resource Demo" solution="Active" />
-        <Dependent key="4" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
+        <Dependent key="7" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
       </MissingDependency>
       <MissingDependency>
         <Required key="2" type="1" schemaName="ita_checklist" displayName="Check List" solution="Active" />
-        <Dependent key="4" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
-      </MissingDependency>
-      <MissingDependency>
-        <Required key="3" type="1" schemaName="ita_webresourcedemo" displayName="Web Resource Demo" solution="Active" />
-        <Dependent key="5" type="1" schemaName="ita_checklisttype" displayName="Check List Type" />
-      </MissingDependency>
-      <MissingDependency>
-        <Required key="2" type="1" schemaName="ita_checklist" displayName="Check List" solution="Active" />
-        <Dependent key="5" type="1" schemaName="ita_checklisttype" displayName="Check List Type" />
-      </MissingDependency>
-      <MissingDependency>
-        <Required key="6" type="1" schemaName="ita_testcontactbpf" displayName="Test Contact BPF" solution="Active" />
-        <Dependent key="7" type="1" schemaName="new_test" displayName="Test" />
+        <Dependent key="7" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
       </MissingDependency>
       <MissingDependency>
         <Required key="8" type="61" schemaName="ita_/html/checkList.html" displayName="ita_/html/checkList.html" solution="Active" />
         <Dependent key="9" type="60" displayName="3_Information" parentDisplayName="Test" id="{34b85efd-ca2f-4b58-b193-6995474c99c8}" />
       </MissingDependency>
       <MissingDependency>
-        <Required key="8" type="61" schemaName="ita_/html/checkList.html" displayName="ita_/html/checkList.html" solution="Active" />
-        <Dependent key="10" type="60" displayName="2_Information" parentDisplayName="Test" id="{75885719-5a25-4393-87b9-ab6acfebc3de}" />
-      </MissingDependency>
-      <MissingDependency>
-        <Required key="11" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
+        <Required key="10" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
         <Dependent key="9" type="60" displayName="3_Information" parentDisplayName="Test" id="{34b85efd-ca2f-4b58-b193-6995474c99c8}" />
       </MissingDependency>
       <MissingDependency>
-        <Required key="11" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
-        <Dependent key="12" type="60" displayName="Information" parentDisplayName="Test" id="{48d7845f-3fd7-46a0-846e-8274b4d5e6f0}" />
+        <Required key="10" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
+        <Dependent key="11" type="60" displayName="Information" parentDisplayName="Test" id="{48d7845f-3fd7-46a0-846e-8274b4d5e6f0}" />
       </MissingDependency>
       <MissingDependency>
         <Required key="8" type="61" schemaName="ita_/html/checkList.html" displayName="ita_/html/checkList.html" solution="Active" />
-        <Dependent key="12" type="60" displayName="Information" parentDisplayName="Test" id="{48d7845f-3fd7-46a0-846e-8274b4d5e6f0}" />
+        <Dependent key="11" type="60" displayName="Information" parentDisplayName="Test" id="{48d7845f-3fd7-46a0-846e-8274b4d5e6f0}" />
       </MissingDependency>
       <MissingDependency>
-        <Required key="11" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
-        <Dependent key="10" type="60" displayName="2_Information" parentDisplayName="Test" id="{75885719-5a25-4393-87b9-ab6acfebc3de}" />
+        <Required key="10" type="61" schemaName="new_test.js" displayName="new_test.js" solution="Active" />
+        <Dependent key="12" type="60" displayName="2_Information" parentDisplayName="Test" id="{75885719-5a25-4393-87b9-ab6acfebc3de}" />
       </MissingDependency>
       <MissingDependency>
         <Required key="13" type="61" schemaName="msdyn_/Images/AppModule_Default_Icon.png" displayName="msdyn_/Images/AppModule_Default_Icon.png" solution="AppModuleWebResources (2.5)" />
-        <Dependent key="4" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
+        <Dependent key="7" type="80" schemaName="ita_SimpleApp" displayName="Simple App" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="8" type="61" schemaName="ita_/html/checkList.html" displayName="ita_/html/checkList.html" solution="Active" />
+        <Dependent key="12" type="60" displayName="2_Information" parentDisplayName="Test" id="{75885719-5a25-4393-87b9-ab6acfebc3de}" />
       </MissingDependency>
     </MissingDependencies>
   </SolutionManifest>
