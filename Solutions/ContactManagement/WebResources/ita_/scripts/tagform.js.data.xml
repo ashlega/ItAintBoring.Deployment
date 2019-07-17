@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WebResource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <WebResourceId>{dceed1f5-94a8-e911-a984-000d3af3e33d}</WebResourceId>
+  <Name>ita_/scripts/tagform.js</Name>
+  <DisplayName>Tag Form </DisplayName>
+  <WebResourceType>3</WebResourceType>
+  <IntroducedVersion>0.0.0.1</IntroducedVersion>
+  <IsEnabledForMobileClient>0</IsEnabledForMobileClient>
+  <IsAvailableForMobileOffline>0</IsAvailableForMobileOffline>
+  <DependencyXml>&lt;Dependencies&gt;&lt;Dependency componentType="WebResource"/&gt;&lt;/Dependencies&gt;</DependencyXml>
+  <IsCustomizable>1</IsCustomizable>
+  <CanBeDeleted>1</CanBeDeleted>
+  <IsHidden>0</IsHidden>
+  <FileName>/WebResources/ita_scriptstagformjsDCEED1F5-94A8-E911-A984-000D3AF3E33D</FileName>
+</WebResource>
