@@ -28,11 +28,19 @@
                       </cell>
                     </row>
                     <row>
-                      <cell id="{c6b41d0f-d5a2-4bb4-94da-9889192d6f18}" visible="true">
+                      <cell id="{1574ba1d-3873-4fa5-8938-58be6e963efe}" showlabel="true" locklevel="0">
+                        <labels>
+                          <label description="Description" languagecode="1033" />
+                        </labels>
+                        <control id="ita_description" classid="{E0DECE4B-6FC8-4a8f-A065-082708572369}" datafieldname="ita_description" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6d9b1453-1ef8-40ea-8d4b-49e6e28a739b}" showlabel="true" locklevel="0">
                         <labels>
                           <label description="Owner" languagecode="1033" />
                         </labels>
-                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" disabled="false" />
                       </cell>
                     </row>
                   </rows>
