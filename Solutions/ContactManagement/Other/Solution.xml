@@ -80,6 +80,7 @@
     <RootComponents>
       <RootComponent type="1" schemaName="contact" behavior="1" />
       <RootComponent type="1" schemaName="ita_tag" behavior="0" />
+      <RootComponent type="60" id="{c9b0be2c-eee2-4c37-aa80-d807246b0313}" behavior="0" />
       <RootComponent type="61" schemaName="ita_/scripts/tagform.js" behavior="0" />
       <RootComponent type="62" schemaName="ita_ContactManagement" behavior="0" />
       <RootComponent type="80" schemaName="ita_ContactManagement" behavior="0" />
