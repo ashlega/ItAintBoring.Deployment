@@ -46,7 +46,7 @@ steps:
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-import-solution.PowerAppsImportSolution@0
   displayName: 'PowerApps Import Solution '
   inputs:
-    PowerAppsEnvironment: 'Smoke Test'
+    PowerAppsEnvironment: 'Test$(Build.SourceBranchName)'
     SolutionInputFile: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
     ConvertToManaged: false
     HoldingSolution: false
@@ -74,7 +74,6 @@ steps:
     testFiltercriteria: 'Name=UCIDevOpsCreateTag'
     uiTests: true
     runSettingsFile: Test/UIAutomation/test.runsettings
-    overrideTestrunParameters: '-OnlineCrmUrl https://orgc0500748.crm3.dynamics.com -OnlineUsername easyrepro@treecatsoftware.com -OnlinePassword TestUser123_'
 
 - task: PublishPipelineArtifact@1
   displayName: 'Publish Pipeline Artifact (solution_managed.zip)'
