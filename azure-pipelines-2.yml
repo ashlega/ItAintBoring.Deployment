@@ -1,6 +1,11 @@
 
 trigger:
-- master
+  batch: true
+  paths:
+    include:
+    - Code/*
+    - Solutions/*
+
 
 pool:
   name: Hosted VS2017
