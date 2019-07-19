@@ -4,7 +4,7 @@
   <TestRunParameters>
     <Parameter name="OnlineUsername" value="easyrepro@treecatsoftware.com" />
     <Parameter name="OnlinePassword" value="TestUser123_" />
-    <Parameter name="OnlineCrmUrl" value="https://org0e79c63d.crm3.dynamics.com" />
+    <Parameter name="OnlineCrmUrl" value="https://orgc0500748.crm3.dynamics.com" />
     <Parameter name="BrowserType" value="Chrome" />
   </TestRunParameters>
 </RunSettings>
