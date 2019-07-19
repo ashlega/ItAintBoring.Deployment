@@ -28,14 +28,6 @@
                       </cell>
                     </row>
                     <row>
-                      <cell id="{2d123372-eed7-2b06-979a-583c8dc2087b}" showlabel="true" locklevel="0">
-                        <labels>
-                          <label description="" languagecode="1033" />
-                        </labels>
-                        <control id="ita_description" classid="{E0DECE4B-6FC8-4a8f-A065-082708572369}" datafieldname="ita_description" disabled="false" />
-                      </cell>
-                    </row>
-                    <row>
                       <cell id="{6d9b1453-1ef8-40ea-8d4b-49e6e28a739b}" showlabel="true" locklevel="0">
                         <labels>
                           <label description="" languagecode="1033" />
