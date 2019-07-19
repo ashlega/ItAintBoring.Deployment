@@ -46,7 +46,7 @@ steps:
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-import-solution.PowerAppsImportSolution@0
   displayName: 'PowerApps Import Solution '
   inputs:
-    PowerAppsEnvironment: 'Smoke Test'
+    PowerAppsEnvironment: 'Test$(Build.SourceBranchName)'
     SolutionInputFile: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
     ConvertToManaged: false
     HoldingSolution: false
