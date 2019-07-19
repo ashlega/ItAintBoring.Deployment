@@ -28,11 +28,11 @@
                       </cell>
                     </row>
                     <row>
-                      <cell id="{1574ba1d-3873-4fa5-8938-58be6e963efe}" showlabel="true" locklevel="0">
+                      <cell id="{2d123372-eed7-2b06-979a-583c8dc2087b}" showlabel="true" locklevel="0">
                         <labels>
                           <label description="Description" languagecode="1033" />
                         </labels>
-                        <control id="ita_description" classid="{E0DECE4B-6FC8-4a8f-A065-082708572369}" datafieldname="ita_description" disabled="false" uniqueid="{b4ea50ed-31e6-0e42-9b13-6cec53ec6deb}" />
+                        <control id="ita_description" classid="{E0DECE4B-6FC8-4a8f-A065-082708572369}" datafieldname="ita_description" disabled="false" />
                       </cell>
                     </row>
                     <row>
@@ -125,13 +125,6 @@
       <formLibraries>
         <Library name="ita_/scripts/tagform.js" libraryUniqueId="{2154939a-8aa2-7412-dbb4-795ee2d384a1}" />
       </formLibraries>
-      <events>
-        <event name="onchange" application="false" active="false" attribute="ita_name">
-          <Handlers>
-            <Handler functionName="AlertOnTest" libraryName="ita_/scripts/tagform.js" handlerUniqueId="{40d61c90-b1cd-3542-d3a6-203d0455ae26}" enabled="true" parameters="" passExecutionContext="true" />
-          </Handlers>
-        </event>
-      </events>
       <DisplayConditions Order="0" FallbackForm="true" />
     </form>
     <IsCustomizable>1</IsCustomizable>
