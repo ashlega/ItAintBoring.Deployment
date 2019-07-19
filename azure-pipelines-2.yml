@@ -70,12 +70,14 @@ steps:
 
 - task: PublishPipelineArtifact@1
   displayName: 'Publish Pipeline Artifact (solution_managed.zip)'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
     artifact: 'solution_managed.zip'
-
+  
 - task: PublishPipelineArtifact@1
   displayName: 'Publish Pipeline Artifact (solution.zip) '
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)\solutions\solution.zip'
     artifact: solution.zip
