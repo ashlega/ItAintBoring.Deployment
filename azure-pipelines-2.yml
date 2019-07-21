@@ -1,15 +1,4 @@
 
-trigger:
-  batch: true
-  branches:
-    include:
-    - '*'
-  paths:
-    include:
-    - Code/*
-    - Solutions/*
-
-
 pool:
   name: Hosted VS2017
   demands:
@@ -31,13 +20,6 @@ steps:
   displayName: 'PowerApps Tool Installer '
 
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-pack-solution.PowerAppsPackSolution@0
-  displayName: 'PowerApps Pack Solution '
-  inputs:
-    SolutionSourceFolder: 'Solutions\$(SolutionName)'
-    SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
-    SolutionType: Managed
-
-- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-pack-solution.PowerAppsPackSolution@0
   displayName: 'PowerApps Pack Solution  (Unmanaged)'
   inputs:
     SolutionSourceFolder: 'Solutions\$(SolutionName)'
@@ -46,8 +28,8 @@ steps:
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-import-solution.PowerAppsImportSolution@0
   displayName: 'PowerApps Import Solution '
   inputs:
-    PowerAppsEnvironment: 'Test$(Build.SourceBranchName)'
-    SolutionInputFile: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
+    PowerAppsEnvironment: 'Dev$(Build.SourceBranchName)'
+    SolutionInputFile: '$(Build.ArtifactStagingDirectory)\solutions\solution.zip'
     ConvertToManaged: false
     HoldingSolution: false
     OverwriteUnmanagedCustomizations: false
@@ -75,16 +57,3 @@ steps:
     uiTests: true
     runSettingsFile: Test/UIAutomation/test.runsettings
 
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish Pipeline Artifact (solution_managed.zip)'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
-    artifact: 'solution_managed.zip'
-  
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish Pipeline Artifact (solution.zip) '
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\solutions\solution.zip'
-    artifact: solution.zip
