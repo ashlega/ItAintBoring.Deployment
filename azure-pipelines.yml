@@ -2,7 +2,7 @@
 name: $(BuildDefinitionName)-$(Date:yyyyMMdd).$(Rev:.r)
 
 trigger:
-- master
+- none
 
 pool:
   vmImage: 'vs2017-win2016'
