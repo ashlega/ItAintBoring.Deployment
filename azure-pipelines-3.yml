@@ -16,7 +16,7 @@ steps:
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-export-solution.PowerAppsExportSolution@0
   displayName: 'PowerApps Export Solution '
   inputs:
-    PowerAppsEnvironment: DevMaster
+    PowerAppsEnvironment: Dev$(Build.SourceBranchName)
     SolutionName: '$(SolutionName)'
     SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName).zip'
     Managed: false
@@ -34,7 +34,7 @@ steps:
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-export-solution.PowerAppsExportSolution@0
   displayName: 'PowerApps Export Managed Solution'
   inputs:
-    PowerAppsEnvironment: DevMaster
+    PowerAppsEnvironment: Dev$(Build.SourceBranchName)
     SolutionName: '$(SolutionName)'
     SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName)_managed.zip'
     Managed: true
