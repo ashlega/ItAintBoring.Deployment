@@ -3,6 +3,8 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+trigger: none
+
 pool:
   name: Hosted VS2017
 variables:
@@ -65,4 +67,5 @@ steps:
    git commit -m "exported solution"
    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin $(Build.SourceBranchName) 
   displayName: 'Git push to origin'
+
 
