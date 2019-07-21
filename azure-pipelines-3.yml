@@ -68,3 +68,4 @@ steps:
    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin $(Build.SourceBranchName) 
   displayName: 'Git push to origin'
 
+
