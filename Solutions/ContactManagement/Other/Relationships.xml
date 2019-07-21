@@ -1,10 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <EntityRelationships xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <EntityRelationship Name="business_unit_ita_newentity" />
   <EntityRelationship Name="business_unit_ita_tag" />
   <EntityRelationship Name="ita_Tag_Contact_Contact" />
+  <EntityRelationship Name="lk_ita_newentity_createdby" />
+  <EntityRelationship Name="lk_ita_newentity_modifiedby" />
   <EntityRelationship Name="lk_ita_tag_createdby" />
   <EntityRelationship Name="lk_ita_tag_modifiedby" />
+  <EntityRelationship Name="owner_ita_newentity" />
   <EntityRelationship Name="owner_ita_tag" />
+  <EntityRelationship Name="team_ita_newentity" />
   <EntityRelationship Name="team_ita_tag" />
+  <EntityRelationship Name="user_ita_newentity" />
   <EntityRelationship Name="user_ita_tag" />
 </EntityRelationships>

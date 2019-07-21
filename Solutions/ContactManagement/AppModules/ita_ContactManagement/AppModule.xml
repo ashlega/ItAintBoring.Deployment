@@ -9,6 +9,7 @@
   <AppModuleComponents>
     <AppModuleComponent type="62" schemaName="ita_ContactManagement" />
     <AppModuleComponent type="1" schemaName="contact" />
+    <AppModuleComponent type="1" schemaName="ita_newentity" />
     <AppModuleComponent type="1" schemaName="ita_tag" />
   </AppModuleComponents>
   <AppModuleRoleMaps>

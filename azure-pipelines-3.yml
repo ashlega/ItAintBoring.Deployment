@@ -3,9 +3,6 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-trigger:
-- master
-
 pool:
   name: Hosted VS2017
 variables:
@@ -14,13 +11,12 @@ variables:
 steps:
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-tool-installer.PowerAppsToolInstaller@0
   displayName: 'PowerApps Tool Installer '
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+
 
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-export-solution.PowerAppsExportSolution@0
   displayName: 'PowerApps Export Solution '
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
-    PowerAppsEnvironment: DevMaster
+    PowerAppsEnvironment: Dev$(Build.SourceBranchName)
     SolutionName: '$(SolutionName)'
     SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName).zip'
     Managed: false
@@ -37,9 +33,8 @@ steps:
 
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-export-solution.PowerAppsExportSolution@0
   displayName: 'PowerApps Export Managed Solution'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
-    PowerAppsEnvironment: DevMaster
+    PowerAppsEnvironment: Dev$(Build.SourceBranchName)
     SolutionName: '$(SolutionName)'
     SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName)_managed.zip'
     Managed: true
@@ -56,7 +51,6 @@ steps:
 
 - task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-unpack-solution.PowerAppsUnpackSolution@0
   displayName: 'PowerApps Unpack Solution '
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     SolutionInputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName).zip'
     SolutionTargetFolder: 'Solutions\$(SolutionName)'
@@ -66,11 +60,9 @@ steps:
    echo commit all changes
    git config user.email "info@treecatsoftware.com"
    git config user.name "Automatic Build"
-   git checkout master
+   git checkout $(Build.SourceBranchName)
    git add --all
    git commit -m "exported solution"
-   git tag -a $(build.buildNumber) -m $(build.buildNumber)
-   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin master --follow-tags
-  displayName: 'Git push to master'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin $(Build.SourceBranchName) 
+  displayName: 'Git push to origin'
 
