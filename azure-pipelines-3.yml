@@ -3,9 +3,6 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-trigger:
-- master
-
 pool:
   name: Hosted VS2017
 variables:
@@ -63,9 +60,9 @@ steps:
    echo commit all changes
    git config user.email "info@treecatsoftware.com"
    git config user.name "Automatic Build"
-   git checkout master
+   git checkout $(Build.SourceBranchName)
    git add --all
    git commit -m "exported solution"
-   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin master 
+   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin $(Build.SourceBranchName) 
   displayName: 'Git push to origin'
 
