@@ -1,0 +1,68 @@
+# Export and Unpack
+
+trigger: none
+
+pool:
+  name: Hosted VS2017
+variables:
+  SolutionName: 'ContactManagement'
+
+steps:
+- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-tool-installer.PowerAppsToolInstaller@0
+  displayName: 'PowerApps Tool Installer '
+
+
+- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-export-solution.PowerAppsExportSolution@0
+  displayName: 'PowerApps Export Solution '
+  inputs:
+    PowerAppsEnvironment: Dev$(Build.SourceBranchName)
+    SolutionName: '$(SolutionName)'
+    SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName).zip'
+    Managed: false
+    ExportAutoNumberingSettings: false
+    ExportCalendarSettings: false
+    ExportCustomizationSettings: false
+    ExportEmailTrackingSettings: false
+    ExportGeneralSettings: false
+    ExportIsvConfig: false
+    ExportMarketingSettings: false
+    ExportOutlookSynchronizationSettings: false
+    ExportRelationshipRoles: false
+    ExportSales: false
+
+- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-export-solution.PowerAppsExportSolution@0
+  displayName: 'PowerApps Export Managed Solution'
+  inputs:
+    PowerAppsEnvironment: Dev$(Build.SourceBranchName)
+    SolutionName: '$(SolutionName)'
+    SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName)_managed.zip'
+    Managed: true
+    ExportAutoNumberingSettings: false
+    ExportCalendarSettings: false
+    ExportCustomizationSettings: false
+    ExportEmailTrackingSettings: false
+    ExportGeneralSettings: false
+    ExportIsvConfig: false
+    ExportMarketingSettings: false
+    ExportOutlookSynchronizationSettings: false
+    ExportRelationshipRoles: false
+    ExportSales: false
+
+- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-unpack-solution.PowerAppsUnpackSolution@0
+  displayName: 'PowerApps Unpack Solution '
+  inputs:
+    SolutionInputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName).zip'
+    SolutionTargetFolder: 'Solutions\$(SolutionName)'
+    SolutionType: Both
+
+- script: |
+   echo commit all changes
+   git config user.email "info@treecatsoftware.com"
+   git config user.name "Automatic Build"
+   git checkout $(Build.SourceBranchName)
+   git add --all
+   git commit -m "exported solution"
+   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin $(Build.SourceBranchName) 
+  displayName: 'Git push to origin'
+
+
