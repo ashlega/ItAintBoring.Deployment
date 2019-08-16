@@ -1,86 +1,91 @@
-
-name: $(BuildDefinitionName)-$(Date:yyyyMMdd).$(Rev:.r)
+# Build and test
 
 trigger:
-- master
+  batch: true
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - Code/*
+    - Solutions/*
+
 
 pool:
-  vmImage: 'vs2017-win2016'
+  name: Hosted VS2017
+  demands:
+  - msbuild
+  - visualstudio
 
+variables:
+  SolutionName: 'ContactManagement'
 
 steps:
+- task: PowerShell@2
+  displayName: 'Replace solution code files'
+  inputs:
+    targetType: filePath
+    filePath: ./PipelineScripts/replacefiles.ps1
+    workingDirectory: PipelineScripts
 
-- checkout: self
-  persistCredentials: true
+- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-tool-installer.PowerAppsToolInstaller@0
+  displayName: 'PowerApps Tool Installer '
 
-- powershell: |
-    git checkout master
-  displayName: 'Checking out master'
+- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-pack-solution.PowerAppsPackSolution@0
+  displayName: 'PowerApps Pack Solution '
+  inputs:
+    SolutionSourceFolder: 'Solutions\$(SolutionName)'
+    SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
+    SolutionType: Managed
 
-- script: md tools
-  displayName: 'Create tools directory'
+- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-pack-solution.PowerAppsPackSolution@0
+  displayName: 'PowerApps Pack Solution  (Unmanaged)'
+  inputs:
+    SolutionSourceFolder: 'Solutions\$(SolutionName)'
+    SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\solutions\solution.zip'
 
-- powershell: |
-    Invoke-WebRequest `
-      -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe `
-      -OutFile tools\\nuget.exe
-  displayName: 'Download nuget.exe'
+- task: microsoft-IsvExpTools.PowerApps-BuildTools.powerapps-import-solution.PowerAppsImportSolution@0
+  displayName: 'PowerApps Import Solution '
+  inputs:
+    PowerAppsEnvironment: 'Test$(Build.SourceBranchName)'
+    SolutionInputFile: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
+    ConvertToManaged: false
+    HoldingSolution: false
+    OverwriteUnmanagedCustomizations: false
+    PublishWorkflows: false
+    SkipProductUpdateDependencies: false
 
-- powershell: |
-    tools\\nuget.exe install Microsoft.CrmSdk.CoreTools -O tools
-    md "tools\\CoreTools"
-    $coreToolsFolder = Get-ChildItem tools | Where-Object {$_.Name -match 'Microsoft.CrmSdk.CoreTools.'}
-    move "tools\\$coreToolsFolder\\content\\bin\\coretools\\*.*" "tools\\CoreTools"
-    Remove-Item "tools\\$coreToolsFolder" -Force -Recurse
-  displayName: 'Install CoreTools'
+- task: VSBuild@1
+  displayName: 'Build test solution'
+  inputs:
+    solution: 'Test\UIAutomation.sln'
+    vsVersion: 15.0
+    configuration: debug
 
-- powershell: |
-    tools\\nuget.exe install ItAintBoring.CDS.PowerShell -O Scripts
-    $cdsPowerShellFolder = Get-ChildItem Scripts | Where-Object {$_.Name -match 'ItAintBoring.CDS.PowerShell.'}
-    move "Scripts\\$cdsPowerShellFolder\\*.*" "Scripts"
-  displayName: 'Install CDS Powershell'
+- task: VisualStudioTestPlatformInstaller@1
+  displayName: 'Visual Studio Test Platform Installer'
 
+- task: VSTest@2
+  displayName: 'Run the tests'
+  inputs:
+    testAssemblyVer2: |
+     **\UIAutomation.dll
+     !**\obj\**
+    searchFolder: 'Test\UIAutomation\bin\Debug'
+    testFiltercriteria: 'TestCategory=ContactManagement'
+    uiTests: true
+    runSettingsFile: Test/UIAutomation/test.runsettings
 
-- powershell: |
-    .\export.ps1
-  displayName: 'Export Solution'
-  env:
-    ConnectionString: $(SourceConnectionString)
-    SolutionName: 'Demo'
-
-#- task: PublishBuildArtifacts@1
-#  inputs:
-#    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-#    artifactName: drop
-
-- powershell: |
-    Start-Process tools/CoreTools/SolutionPackager.exe `
-    -ArgumentList `
-      "/action: Extract", `
-      "/zipfile: Solutions\Demo.zip", `
-      "/folder: Solutions\Extracted\Demo", `
-      "/packagetype: Both" `
-    -Wait `
-    -NoNewWindow
-  workingDirectory: $(Build.Repository.LocalPath)
-  displayName: 'Solution Packager: extract solution'
-
-
-
-- powershell: |
-    Remove-Item "tools" -Force -Recurse
-    Remove-Item "Scripts" -Force -Recurse
-  displayName: 'Cleanup'
-
-
-
-- powershell: |
-    git config user.email "info@treecatsoftware.com"
-    git config user.name "Demo Build Agent"
-    git add .
-    git commit -m "Commit from Azure"
-    git push origin master
-  workingDirectory: $(Build.Repository.LocalPath)
-  displayName: 'Commiting extracted files'
-
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Pipeline Artifact (solution_managed.zip)'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)\solutions\solution_managed.zip'
+    artifact: 'solution_managed.zip'
   
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Pipeline Artifact (solution.zip) '
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)\solutions\solution.zip'
+    artifact: solution.zip
