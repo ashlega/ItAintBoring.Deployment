@@ -56,7 +56,6 @@ C:\Work\Projects\CDSDemo\Test\UIAutomation\bin\Debug\Newtonsoft.Json.xml
 C:\Work\Projects\CDSDemo\Test\UIAutomation\bin\Debug\System.Diagnostics.DiagnosticSource.xml
 C:\Work\Projects\CDSDemo\Test\UIAutomation\bin\Debug\WebDriver.xml
 C:\Work\Projects\CDSDemo\Test\UIAutomation\bin\Debug\WebDriver.Support.xml
-C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.csprojResolveAssemblyReference.cache
 C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.csproj.CoreCompileInputs.cache
 C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.csproj.CopyComplete
 C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.dll
