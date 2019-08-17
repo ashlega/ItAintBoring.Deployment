@@ -3,8 +3,8 @@
 <RunSettings>
   <TestRunParameters>
     <Parameter name="OnlineUsername" value="easyrepro@treecatsoftware.com" />
-    <Parameter name="OnlinePassword" value="TestUser123_" />
-    <Parameter name="OnlineCrmUrl" value="https://orgede4762b.crm3.dynamics.com" />
+    <Parameter name="OnlinePassword" value="EasyTest123_" />
+    <Parameter name="OnlineCrmUrl" value="https://orga0116f96.crm3.dynamics.com" />
     <Parameter name="BrowserType" value="Chrome" />
   </TestRunParameters>
 </RunSettings>
