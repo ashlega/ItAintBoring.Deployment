@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--Smoke Test environment -->
+<RunSettings>
+  <TestRunParameters>
+    <Parameter name="OnlineUsername" value="easyrepro@treecatsoftware.com" />
+    <Parameter name="OnlinePassword" value="DemoTest123_" />
+    <Parameter name="OnlineCrmUrl" value="https://org504507b8.crm3.dynamics.com" />
+    <Parameter name="BrowserType" value="Chrome" />
+  </TestRunParameters>
+</RunSettings>

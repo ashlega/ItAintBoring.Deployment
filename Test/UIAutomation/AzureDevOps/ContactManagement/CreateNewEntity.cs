@@ -40,8 +40,8 @@ namespace Microsoft.Dynamics365.UIAutomation.Sample.AzureDevOps.ContactManagemen
             using (var xrmApp = new XrmApp(client))
             {
                 xrmApp.OnlineLogin.Login(_xrmUri, _username.ToSecureString(), _password.ToSecureString());
-                //xrmApp.ThinkTime(500);
-                //xrmApp.Navigation.OpenApp("Contact Management");
+                xrmApp.ThinkTime(500);
+                xrmApp.Navigation.OpenApp("Contact Management");
                 xrmApp.ThinkTime(500);
                 xrmApp.Navigation.OpenSubArea("Main", "New Entities");
                 xrmApp.ThinkTime(500);
