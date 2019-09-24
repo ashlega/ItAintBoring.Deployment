@@ -74,7 +74,7 @@ steps:
     searchFolder: 'Test\UIAutomation\bin\Debug'
     testFiltercriteria: 'TestCategory=ContactManagement'
     uiTests: true
-    runSettingsFile: Test/UIAutomation/test.runsettings
+    runSettingsFile: 'Test/UIAutomation/TestSettings/$(Build.SourceBranchName).test.runsettings'
 
 - task: PublishPipelineArtifact@1
   displayName: 'Publish Pipeline Artifact (solution_managed.zip)'
