@@ -37,6 +37,7 @@ namespace Microsoft.Dynamics365.UIAutomation.Sample.AzureDevOps.ContactManagemen
         public void UCIDevOpsCreateNewEntity()
         {
             var client = new WebClient(TestSettings.Options);
+            
             using (var xrmApp = new XrmApp(client))
             {
                 xrmApp.OnlineLogin.Login(_xrmUri, _username.ToSecureString(), _password.ToSecureString());

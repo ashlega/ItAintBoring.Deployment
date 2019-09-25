@@ -20,6 +20,7 @@ namespace Microsoft.Dynamics365.UIAutomation.Sample
         public static BrowserOptions Options = new BrowserOptions
         {
             BrowserType = (BrowserType)Enum.Parse(typeof(BrowserType), Type),
+            
             PrivateMode = true,
             FireEvents = false,
             Headless = false,
@@ -29,6 +30,12 @@ namespace Microsoft.Dynamics365.UIAutomation.Sample
             RemoteHubServer = new Uri(RemoteHubServerURL),
             UCITestMode = true
         };
+
+        static TestSettings()
+        {
+            if (Environment.GetEnvironmentVariable("ChromeWebDriver") != null)
+                Options.DriversPath = Environment.GetEnvironmentVariable("ChromeWebDriver");
+        }
 
         public static string GetRandomString(int minLen, int maxLen)
         {
