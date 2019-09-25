@@ -60,3 +60,4 @@ C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.csproj.CoreCom
 C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.csproj.CopyComplete
 C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.dll
 C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.pdb
+C:\Work\Projects\CDSDemo\Test\UIAutomation\obj\Debug\UIAutomation.csprojResolveAssemblyReference.cache

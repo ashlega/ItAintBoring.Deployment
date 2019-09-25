@@ -49,6 +49,8 @@ namespace Microsoft.Dynamics365.UIAutomation.Sample.AzureDevOps.ContactManagemen
                 xrmApp.ThinkTime(500);
                 xrmApp.Entity.SetValue("ita_name", TestSettings.GetRandomString(5,15));
                 xrmApp.ThinkTime(500);
+                xrmApp.Entity.SetValue("ita_demosep23", TestSettings.GetRandomString(5, 15));
+                xrmApp.ThinkTime(500);
                 xrmApp.Entity.Save();
                 
             }
