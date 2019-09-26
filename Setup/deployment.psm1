@@ -293,22 +293,23 @@ class CDSDeployment {
 				}
 				
 				Compress-Archive -Path "$TempDir/*" -DestinationPath "$TempDir/template"
-				$updatedTemplate = [Convert]::ToBase64String([IO.File]::ReadAllBytes("$TempDir/template.zip"))
+				$updatedTemplate = [Convert]::ToBase64String($encoding.GetBytes([IO.File]::ReadAllBytes("$TempDir/template.zip")))
 				
+				$entity["content"]  = $updatedTemplate
 				#write-host $updatedTemplate.GetType()
 				#Get-Key
-				Write-Host "HERE"
-				Get-Key
+				#Write-Host "HERE"
+				#Get-Key
 				#Set-Attribute($entity, "content", $updatedTemplate)
-				Write-Host $entity.id
+				#Write-Host $entity.id
 				
-				Get-Key
-				throw 
+				#Get-Key
+				#throw 
 				#Remove-Item –path $TempDir –recurse
 			}
 			
-			
 			$recordExists = $this.CheckRecordExists($conn, $entity, $schema.isIntersect)
+									
 			if($recordExists) { $conn.Update($entity) }
 			else { 
 			    try
@@ -318,6 +319,7 @@ class CDSDeployment {
 				catch
 				{
 				   write-host $_.Exception.Message
+				   Get-Key
 				   throw
 				} 
 			   
@@ -375,71 +377,70 @@ class CDSDeployment {
 			$convValue = $value
 
             
-			{
-				switch($fieldName){
-				   "createdon" { $fieldName = "overriddencreatedon" }
+			switch($fieldName){
+			   "createdon" { $fieldName = "overriddencreatedon" }
+			}
+			
+			switch($schema.attributes.$fieldName){
+			   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
+			   "multiSelectOptionSet" { 
+				   $stringValues = $value.Split(" ")
+					[object] $valueList = foreach($number in $stringValues) {
+						try {
+							New-Object Microsoft.Xrm.Sdk.OptionSetValue $number
+						}
+						catch {
+							write-host "Cannot create an option set value for $entityName.$fieldName - $value"
+						}
+					}
+					$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValueCollection 
+					$convValue.AddRange($valueList)
 				}
 				
-				switch($schema.attributes.$fieldName){
-				   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
-				   "multiSelectOptionSet" { 
-					   $stringValues = $value.Split(" ")
-						[object] $valueList = foreach($number in $stringValues) {
-							try {
-								New-Object Microsoft.Xrm.Sdk.OptionSetValue $number
-							}
-							catch {
-								write-host "Cannot create an option set value for $entityName.$fieldName - $value"
-							}
-						}
-						$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValueCollection 
-						$convValue.AddRange($valueList)
-					}
-					
-					"money" {
-					   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
-					}
-					
-					"bool" {
-					   $convValue = [System.Boolean]::Parse($value)
-					}
-					"entityReference" {
-						$pair = $value.Split(":")
-						$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
-						$convValue.LogicalName = $pair[0]
-						$convValue.Id = $pair[1]
-						$convValue.Name = $null
-					}
-					"guid"{
-					   $convValue = [System.Guid]::Parse($value)
-					}
-					
-					"entityName"{
-					   $convValue = $value
-					}
-					"dateTime"{
-						$convValue = [DateTime]::Parse($value)
-					}
-					"integer"{
-						$convValue = [int]::Parse($value)
-					}
-					"double"{
-						$convValue = [double]::Parse($value)
-					}
-					"decimal"{
-						$convValue = [decimal]::Parse($value)
-					}
-					
-					"owner"  { $ignore = $true }
-					"status" { $ignore = $true }
-					"state"  { $ignore = $true }
-					
-					
-					default {
-					   $convValue = $value
-					}
+				"money" {
+				   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
+				}
+				
+				"bool" {
+				   $convValue = [System.Boolean]::Parse($value)
+				}
+				"entityReference" {
+					$pair = $value.Split(":")
+					$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
+					$convValue.LogicalName = $pair[0]
+					$convValue.Id = $pair[1]
+					$convValue.Name = $null
+				}
+				"guid"{
+				   $convValue = [System.Guid]::Parse($value)
+				}
+				
+				"entityName"{
+				   $convValue = $value
+				}
+				"dateTime"{
+					$convValue = [DateTime]::Parse($value)
+				}
+				"integer"{
+					$convValue = [int]::Parse($value)
+				}
+				"double"{
+					$convValue = [double]::Parse($value)
+				}
+				"decimal"{
+					$convValue = [decimal]::Parse($value)
+				}
+				
+				"owner"  { $ignore = $true }
+				"status" { $ignore = $true }
+				"state"  { $ignore = $true }
+				
+				
+				default {
+				   $convValue = $value
 				}
 			}
+			
 			if($ignore -ne $true)
 			{
 			    Set-Attribute $entity $fieldName $convValue
