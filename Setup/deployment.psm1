@@ -216,6 +216,14 @@ function New-TemporaryDirectory {
     New-Item -ItemType Directory -Path (Join-Path $parent $name)
 }
 
+function ZipFiles( $zipfilename, $sourcedir, [PSObject] $encoding)
+{
+   Add-Type -Assembly System.IO.Compression.FileSystem
+   $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+   [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir,
+        $zipfilename, $compressionLevel, $false, $encoding)
+}
+
 class CDSDeployment {
 	
 	[string]   $environmentFolder = $null
@@ -239,6 +247,8 @@ class CDSDeployment {
 			}
 		
 	}
+	
+	
 	
 	[void] UpsertRecord([PSObject] $conn, [PSObject] $entity, [PSObject] $schema)
 	{
@@ -278,6 +288,8 @@ class CDSDeployment {
 				
 				[System.IO.File]::WriteAllText($ZipName, $templateData, $encoding)
 				
+				
+				
 				$associatedEntityName = $entity["associatedentitytypecode"]
 				$this.LoadSchema($associatedEntityName, $this.DestConn)
 				$associatedSchema = $this.schema.$($entity["associatedentitytypecode"])
@@ -292,20 +304,22 @@ class CDSDeployment {
 				  $newContent | Set-Content -LiteralPath $i.FullName
 				}
 				
-				Compress-Archive -Path "$TempDir/*" -DestinationPath "$TempDir/template"
-				$updatedTemplate = [Convert]::ToBase64String($encoding.GetBytes([IO.File]::ReadAllBytes("$TempDir/template.zip")))
 				
+				Remove-Item -path $ZipName
+				
+				$tmpCurrentDir = Get-Location
+				cd $TempDir
+				zip -r $ZipName .
+				cd $tmpCurrentDir
+
+				#Something's not working with Compress-Archive - the zip gets created, Word can read it, but CDS does not understand it as a template
+				#Compress-Archive -Path "$TempDir/*" -DestinationPath "$TempDir/template" #-CompressionLevel NoCompression
+				
+				$updatedTemplate = [System.Convert]::ToBase64String($encoding.GetBytes([IO.File]::ReadAllText($ZipName, $encoding))) 
 				$entity["content"]  = $updatedTemplate
-				#write-host $updatedTemplate.GetType()
-				#Get-Key
-				#Write-Host "HERE"
-				#Get-Key
-				#Set-Attribute($entity, "content", $updatedTemplate)
-				#Write-Host $entity.id
-				
-				#Get-Key
-				#throw 
-				#Remove-Item –path $TempDir –recurse
+
+				[System.IO.Directory]::Delete($TempDir, $true)
+				Remove-Item -LiteralPath $ZipName
 			}
 			
 			$recordExists = $this.CheckRecordExists($conn, $entity, $schema.isIntersect)
