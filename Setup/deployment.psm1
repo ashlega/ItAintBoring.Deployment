@@ -1,4 +1,3 @@
-
 $script:cds = $null
 $script:TagLookups = @{}
 $script:DestTagValues = @{}
@@ -70,7 +69,7 @@ function Get-CDSData{
 function Initialize-CDSConnections{
    param(
       [string]$EnvironmentFolder = $null,
-      [switch]$ForceUpdate = $true, 
+      [switch]$ForceUpdate, 
 	  [string]$SourceConnectionString = $null, 
 	  [string]$DestinationConnectionString = $null
    )
@@ -174,7 +173,7 @@ function Get-CustomConnection($conString)
 
 function Get-EntityFilters()
 {
-	return [Microsoft.Xrm.Sdk.Metadata.EntityFilters]::Attributes + [Microsoft.Xrm.Sdk.Metadata.EntityFilters]::Relationships
+	return [Microsoft.Xrm.Sdk.Metadata.EntityFilters]::Attributes + [Microsoft.Xrm.Sdk.Metadata.EntityFilters]::Relationships + 1
 }
 
 function Get-AttributeTypeName($typeCode)
@@ -206,6 +205,16 @@ function Get-AttributeTypeName($typeCode)
      }
 }
 
+function Get-Key()
+{
+   return [System.Console]::ReadKey()
+}
+
+function New-TemporaryDirectory {
+    $parent = [System.IO.Path]::GetTempPath()
+    $name = [System.IO.Path]::GetRandomFileName()
+    New-Item -ItemType Directory -Path (Join-Path $parent $name)
+}
 
 class CDSDeployment {
 	
@@ -255,6 +264,50 @@ class CDSDeployment {
 			}
 		}
 		else{
+		
+		
+		    if(($entity.logicalName -eq "documenttemplate"))
+			{
+				$TempFile = New-TemporaryFile
+				$ZipName = "$TempFile.zip"
+				Rename-Item -Path $TempFile -NewName $ZipName
+				
+				$TempDir = New-TemporaryDirectory
+				$encoding = [System.Text.Encoding]::GetEncoding("Windows-1254")
+				$templateData = $encoding.GetString([System.Convert]::FromBase64String($entity["content"])) 
+				
+				[System.IO.File]::WriteAllText($ZipName, $templateData, $encoding)
+				
+				$associatedEntityName = $entity["associatedentitytypecode"]
+				$this.LoadSchema($associatedEntityName, $this.DestConn)
+				$associatedSchema = $this.schema.$($entity["associatedentitytypecode"])
+				Expand-Archive -LiteralPath $ZipName -DestinationPath $TempDir 
+				#replace 
+				
+				$newTypeCode = $associatedSchema.ObjectTypeCode
+				$items = Get-ChildItem -Path $TempDir -Recurse -Filter *.xml
+				
+				foreach ($i in $items) {
+				  $newContent = (Get-Content -LiteralPath $i.FullName) -replace("$associatedEntityName\/\d+\/","$associatedEntityName/$newTypeCode/")  
+				  $newContent | Set-Content -LiteralPath $i.FullName
+				}
+				
+				Compress-Archive -Path "$TempDir/*" -DestinationPath "$TempDir/template"
+				$updatedTemplate = [Convert]::ToBase64String([IO.File]::ReadAllBytes("$TempDir/template.zip"))
+				
+				#write-host $updatedTemplate.GetType()
+				#Get-Key
+				Write-Host "HERE"
+				Get-Key
+				#Set-Attribute($entity, "content", $updatedTemplate)
+				Write-Host $entity.id
+				
+				Get-Key
+				throw 
+				#Remove-Item –path $TempDir –recurse
+			}
+			
+			
 			$recordExists = $this.CheckRecordExists($conn, $entity, $schema.isIntersect)
 			if($recordExists) { $conn.Update($entity) }
 			else { 
@@ -322,67 +375,69 @@ class CDSDeployment {
 			$convValue = $value
 
             
-            switch($fieldName){
-			   "createdon" { $fieldName = "overriddencreatedon" }
-			}
-			
-			switch($schema.attributes.$fieldName){
-			   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
-			   "multiSelectOptionSet" { 
-				   $stringValues = $value.Split(" ")
-					[object] $valueList = foreach($number in $stringValues) {
-						try {
-							New-Object Microsoft.Xrm.Sdk.OptionSetValue $number
+			{
+				switch($fieldName){
+				   "createdon" { $fieldName = "overriddencreatedon" }
+				}
+				
+				switch($schema.attributes.$fieldName){
+				   "optionSet" { $convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValue $value }
+				   "multiSelectOptionSet" { 
+					   $stringValues = $value.Split(" ")
+						[object] $valueList = foreach($number in $stringValues) {
+							try {
+								New-Object Microsoft.Xrm.Sdk.OptionSetValue $number
+							}
+							catch {
+								write-host "Cannot create an option set value for $entityName.$fieldName - $value"
+							}
 						}
-						catch {
-							write-host "Cannot create an option set value for $entityName.$fieldName - $value"
-						}
+						$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValueCollection 
+						$convValue.AddRange($valueList)
 					}
-					$convValue = New-Object Microsoft.Xrm.Sdk.OptionSetValueCollection 
-					$convValue.AddRange($valueList)
-				}
-				
-				"money" {
-				   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
-				}
-				
-				"bool" {
-				   $convValue = [System.Boolean]::Parse($value)
-				}
-				"entityReference" {
-					$pair = $value.Split(":")
-					$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
-					$convValue.LogicalName = $pair[0]
-					$convValue.Id = $pair[1]
-					$convValue.Name = $null
-				}
-				"guid"{
-				   $convValue = [System.Guid]::Parse($value)
-				}
-				
-				"entityName"{
-				   $convValue = $value
-				}
-				"dateTime"{
-				    $convValue = [DateTime]::Parse($value)
-				}
-				"integer"{
-				    $convValue = [int]::Parse($value)
-				}
-				"double"{
-				    $convValue = [double]::Parse($value)
-				}
-				"decimal"{
-				    $convValue = [decimal]::Parse($value)
-				}
-				
-				"owner"  { $ignore = $true }
-				"status" { $ignore = $true }
-			    "state"  { $ignore = $true }
-				
-				
-				default {
-				   $convValue = $value
+					
+					"money" {
+					   $convValue = New-Object Microsoft.Xrm.Sdk.Money $value
+					}
+					
+					"bool" {
+					   $convValue = [System.Boolean]::Parse($value)
+					}
+					"entityReference" {
+						$pair = $value.Split(":")
+						$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
+						$convValue.LogicalName = $pair[0]
+						$convValue.Id = $pair[1]
+						$convValue.Name = $null
+					}
+					"guid"{
+					   $convValue = [System.Guid]::Parse($value)
+					}
+					
+					"entityName"{
+					   $convValue = $value
+					}
+					"dateTime"{
+						$convValue = [DateTime]::Parse($value)
+					}
+					"integer"{
+						$convValue = [int]::Parse($value)
+					}
+					"double"{
+						$convValue = [double]::Parse($value)
+					}
+					"decimal"{
+						$convValue = [decimal]::Parse($value)
+					}
+					
+					"owner"  { $ignore = $true }
+					"status" { $ignore = $true }
+					"state"  { $ignore = $true }
+					
+					
+					default {
+					   $convValue = $value
+					}
 				}
 			}
 			if($ignore -ne $true)
@@ -476,30 +531,56 @@ class CDSDeployment {
 	[void] ExportData([string] $FetchXml, [string] $DataFile)
 	{
 		write-host "Exporting data to $DataFile..."
+		$page = 1
+		$cookie = $null
 		
 		$fetch = $this.ReplaceTags($FetchXml, $script:SourceTagValues)
-		$query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
-		$results = $this.SourceConn.RetrieveMultiple($query)
-
 		$records = @()
-		$results.Entities | ForEach-Object -Process{
-		    $r = New-Object Object
-			$records += $r
-			$r | Add-Member -NotePropertyName entityName -NotePropertyValue $_.LogicalName
+        $results = $null
 
-			$value = New-Object Object
-			$r | Add-Member -NotePropertyName value -NotePropertyValue $value
+		$i = 0   # safety valve
+		do {
+            $query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
+			$results = $this.SourceConn.RetrieveMultiple($query)
 
-			$value | Add-Member -NotePropertyName id -NotePropertyValue $_.Id
-
-		   
-			$_.Attributes | ForEach-Object -Process {
-			  $value | Add-Member -NotePropertyName $_.Key -NotePropertyValue $this.GetFieldValue($_.Value, $script:SourceTagValues)
+			$results.Entities | ForEach-Object -Process{
+				$r = New-Object Object
+				$records += $r
+				$r | Add-Member -NotePropertyName entityName -NotePropertyValue $_.LogicalName
+	
+				$value = New-Object Object
+				$r | Add-Member -NotePropertyName value -NotePropertyValue $value
+	
+				$value | Add-Member -NotePropertyName id -NotePropertyValue $_.Id
+	
+			   
+				$_.Attributes | ForEach-Object -Process {
+				  $value | Add-Member -NotePropertyName $_.Key -NotePropertyValue $this.GetFieldValue($_.Value, $script:SourceTagValues)
+				}
+				
 			}
-			
-		}
 
-		$records | ConvertTo-Json | Out-File -FilePath $DataFile
+			# setup for the next batch of records
+			if( $results.moreRecords){
+                $cookie = $results.PagingCookie
+				$doc = New-Object -TypeName xml
+				$doc.LoadXml($Fetch)
+				
+				$pageAttr = $doc.CreateAttribute("page")
+				$pageAttr.Value = $page++
+				$doc.Fetch.Attributes.Append($pageAttr)
+				$cookieAttr = $doc.CreateAttribute("paging-cookie")
+				$cookieAttr.Value = $cookie
+				$doc.Fetch.Attributes.Append($cookieAttr)
+
+				$fetch = $doc.OuterXml
+                #Write-Host $fetch
+			}
+
+		} while($results.moreRecords -and $i++ -lt 10)
+
+		
+		$records | ConvertTo-Json | Out-File -FilePath $DataFile 
 	}
 	
 	[void] AddAttribute($object, $name, $value)
@@ -540,6 +621,11 @@ class CDSDeployment {
 		if($this.schema.$($request.LogicalName).primaryIdAttribute -eq $null)
 		{
 			$this.schema.$($request.LogicalName) | Add-Member -NotePropertyName "primaryIdAttribute" -NotePropertyValue ""
+		}
+		
+		if($this.schema.$($request.LogicalName).ObjectTypeCode -eq $null)
+		{
+			$this.schema.$($request.LogicalName) | Add-Member -NotePropertyName "ObjectTypeCode" -NotePropertyValue $response.EntityMetadata.ObjectTypeCode
 		}
 		
 		$this.schema.$($request.LogicalName).isIntersect = $response.EntityMetadata.IsIntersect 
@@ -593,9 +679,10 @@ class CDSDeployment {
 		$targetNugetExe = ".\nuget.exe"
 
 		if (!(Test-Path -Path $targetNugetExe)) {
-		  Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe
+		  Invoke-WebRequest $sourceNugetExe -OutFile $targetNugetExe 
 		}
 		Set-Alias nuget $targetNugetExe -Scope Global 
+
 
 		
 		#Download and install modules
