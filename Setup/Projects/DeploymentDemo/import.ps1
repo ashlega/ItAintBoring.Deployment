@@ -1,4 +1,4 @@
-..\..\loader.ps1
+loader.ps1
 
 $targetSolutionExists = Get-CDSSolutionExists($global:SolutionName)
 			
