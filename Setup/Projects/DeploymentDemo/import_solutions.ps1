@@ -11,10 +11,10 @@ else{
   Push-CDSSolution $global:SolutionName -Managed
 }
 
-write-host "Import finished!"
+write-host "Import finished - press a key..."
 
 #Wait for key down
-#$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 
 
 
