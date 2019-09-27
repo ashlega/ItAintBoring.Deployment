@@ -11,6 +11,7 @@ else{
   Push-CDSSolution $global:SolutionName -Managed
 }
 
+Push-CDSData "Data\documenttemplates.txt" 
 Push-CDSData "Data\deployedentity.txt" 
 Push-CDSData "Data\businessunit.txt" 
 
