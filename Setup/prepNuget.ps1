@@ -1,4 +1,4 @@
-$FileName = "NuGet\ItAintBoring.CDS.PowerShell"
+$FileName = "ItAintBoring.CDS.PowerShell"
 if (Test-Path "$FileName.nupkg") 
 {
   Remove-Item "$FileName.nupkg"
