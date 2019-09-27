@@ -216,12 +216,61 @@ function New-TemporaryDirectory {
     New-Item -ItemType Directory -Path (Join-Path $parent $name)
 }
 
-function ZipFiles( $zipfilename, $sourcedir, [PSObject] $encoding)
+function Get-ContentType($contentFile, $partName)
 {
-   Add-Type -Assembly System.IO.Compression.FileSystem
-   $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-   [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir,
-        $zipfilename, $compressionLevel, $false, $encoding)
+   $result = ""
+   $found = ($contentFile -match "$partName`" ContentType=`"(.*?)`"" )
+   if($matches -eq $null) {
+      if($partName -match 'png$')
+	  {
+	     $result = 'image/png'
+	  }
+	  if($partName -match 'rels$')
+	  {
+	     $result =  'application/vnd.openxmlformats-package.relationships+xml'
+	  }
+	  if($partName -match 'xml$')
+	  {
+	     $result =  'application/xml'
+	  }
+	  if($partName -match 'wdp$')
+	  {
+	     $result =  'image/vnd.ms-photo'
+	  }
+   }
+   else{
+      $result = $matches[1]
+   }
+   return $result
+}
+
+function New-TemplateZip($zipFile, $folder)
+{
+    [System.Reflection.Assembly]::Load("WindowsBase, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35")
+    $tempLocation = Get-Location
+    cd $folder   
+    $tmpCurrentDir = Get-Location
+    $ZipPackage=[System.IO.Packaging.ZipPackage]::Open($zipFile,
+	  [System.IO.FileMode]"OpenOrCreate", [System.IO.FileAccess]"ReadWrite")
+    $files = Get-ChildItem -File -Path . -Recurse 
+    $contentFile = [IO.File]::ReadAllText("$folder\[Content_Types].xml")	
+	ForEach ($file In $files)
+	{
+	   if($file.Name -ne "[Content_Types].xml")
+	   {
+		   $partNameString = $file.FullName.replace("$tmpCurrentDir\", "").replace("\", "/")
+		   $partName = New-Object System.Uri("/$partNameString", [System.UriKind]"Relative")
+		   $contentType = Get-ContentType $contentFile $partName
+		   $part=$ZipPackage.CreatePart($partName, $contentType, [System.IO.Packaging.CompressionOption]"Maximum")
+		   $bytes=[System.IO.File]::ReadAllBytes($file.FullName)
+		   $stream=$part.GetStream()
+		   $stream.Write($bytes, 0, $bytes.Length)
+		   $stream.Close()
+		}
+	}
+	$ZipPackage.Close()
+
+    cd $tempLocation
 }
 
 class CDSDeployment {
@@ -304,13 +353,11 @@ class CDSDeployment {
 				  $newContent | Set-Content -LiteralPath $i.FullName
 				}
 				
-				
 				Remove-Item -path $ZipName
 				
-				$tmpCurrentDir = Get-Location
-				cd $TempDir
-				zip -r $ZipName .
-				cd $tmpCurrentDir
+				New-TemplateZip $zipName $TempDir
+				
+				Get-Key
 
 				#Something's not working with Compress-Archive - the zip gets created, Word can read it, but CDS does not understand it as a template
 				#Compress-Archive -Path "$TempDir/*" -DestinationPath "$TempDir/template" #-CompressionLevel NoCompression
