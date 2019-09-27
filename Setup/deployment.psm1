@@ -357,8 +357,6 @@ class CDSDeployment {
 				
 				New-TemplateZip $zipName $TempDir
 				
-				Get-Key
-
 				#Something's not working with Compress-Archive - the zip gets created, Word can read it, but CDS does not understand it as a template
 				#Compress-Archive -Path "$TempDir/*" -DestinationPath "$TempDir/template" #-CompressionLevel NoCompression
 				
@@ -380,7 +378,6 @@ class CDSDeployment {
 				catch
 				{
 				   write-host $_.Exception.Message
-				   Get-Key
 				   throw
 				} 
 			   
