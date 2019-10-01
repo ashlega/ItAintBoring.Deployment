@@ -108,9 +108,10 @@ function Push-CDSSolution()
 	[bool]$publishWorkflows, #Will publish workflows during import
 	[bool]$overwriteUnmanagedCustomizations, #Will overwrite unmanaged customizations
 	[bool]$skipProductUpdateDependencies, #Will skip product update dependencies
-	[switch]$holdingSolution = $false #Imports by creating a holding/upgrade solution
-	#[bool]$ImportAsync = $false, #Import solution in Async Mode, recommended
-	#[int]$AsyncWaitTimeout #Optional - Async wait timeout in seconds
+	[switch]$holdingSolution = $false, #Imports by creating a holding/upgrade solution
+	[switch]$ImportAsync = $false, #Import solution in Async Mode, recommended
+	[int]$AsyncWaitTimeout = 120, #Optional - Async wait timeout in seconds
+	[switch]$WaitForCompletion = $true #For async only
   )
   
     write-host "Importing solution: $solutionName"
@@ -124,6 +125,7 @@ function Push-CDSSolution()
 	}
 		
 	
+	
 
 	$impSolReq = [Microsoft.Crm.Sdk.Messages.ImportSolutionRequest]::New()
 	$impSolReq.CustomizationFile = $fileBytes
@@ -135,7 +137,52 @@ function Push-CDSSolution()
 	
 	$impSolReq.HoldingSolution = $holdingSolution
 	
-	$script:cds.DestConn.Execute($impSolReq)
+	
+	
+	if($ImportAsync -eq $true)
+	{
+	    $asyncReq = [Microsoft.Xrm.Sdk.Messages.ExecuteAsyncRequest]::New()
+	    $asyncReq.Request = $impSolReq
+		$asyncResponse = $script:cds.DestConn.Execute($asyncReq)
+		$asyncOperationId = $asyncResponse.AsyncJobId
+		
+		if ($WaitForCompletion)
+		{
+			$end = [DateTime]::Now.AddSeconds($AsyncWaitTimeout)
+			$columnSet = New-Object Microsoft.Xrm.Sdk.Query.ColumnSet $true
+			$importFinished = $false
+			
+			while (($end -gt [DateTime]::Now) -and ($importFinished -eq $false))
+			{
+				write-host "Waiting 5 seconds..."
+				Start-Sleep -Seconds 5
+				$asyncOperation = $script:cds.DestConn.Retrieve("asyncoperation", $asyncOperationId, $columnSet)
+				switch ($asyncOperation["statuscode"].Value)
+				{
+					#Succeeded
+					30 { $importFinished = $true }
+					#//Pausing //Canceling //Failed //Canceled
+					21: { throw "Solution import failed" }
+					21: { throw "Solution import failed" }
+					22: { throw "Solution import failed" }
+					31: { throw "Solution import failed" }
+					32: { throw "Solution import failed" }
+					#	thrownewException(string.Format(“Solution Import Failed: {0} {1}”,asyncOperation.StatusCode.Value, asyncOperation.Message));
+					default { break }
+				}
+				
+			}
+			if($importFinished -ne $true) 
+			{
+			  throw "Timeout error while importing the solution"
+			}
+		}
+		
+	}
+	else
+	{
+	    $script:cds.DestConn.Execute($impSolReq)
+	}
 	
 	if(!$Managed)
 	{

@@ -8,7 +8,7 @@ if($targetSolutionExists)
   Push-ApplySolutionUpdates $global:SolutionName
 }
 else{
-  Push-CDSSolution $global:SolutionName -Managed
+  Push-CDSSolution $global:SolutionName -Managed -ImportAsync -AsyncWaitTimeout 1000 -WaitForCompletion
 }
 
 write-host "Import finished - press a key..."
