@@ -537,11 +537,21 @@ class CDSDeployment {
 				}
 				
 				"owner"  { $ignore = $true }
-				"status" { $ignore = $true }
-				"state"  { $ignore = $true }
+				"status" { 
+				    $convValue = New-Object -TypeName Microsoft.Xrm.Sdk.OptionSetValue
+					$convValue.Value = [int]::Parse($value)
+				}
+				"state"  { 
+			    	$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.OptionSetValue
+					$convValue.Value = [int]::Parse($value)
+				}
 				
+				"string" {
+				    $convValue = $value
+				}
 				
 				default {
+				   write-host "Unexpected attribute type: $($schema.attributes.$fieldName)"
 				   $convValue = $value
 				}
 			}
