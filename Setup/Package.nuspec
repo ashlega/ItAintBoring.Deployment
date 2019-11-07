@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>ItAintBoring.CDS.PowerShell</id>
-    <version>1.0.1</version>
+    <version>1.0.3</version>
     <authors>Alex Shlega</authors>
     <owners>ashlega</owners>
     <projectUrl>https://github.com/ashlega/ItAintBoring.Deployment</projectUrl>
 	<licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A powershell library to work with CDS solutions/data</description>
-    <releaseNotes>Updated nuget - Word Templates support and bug fixes.</releaseNotes>
+    <releaseNotes>Updated nuget - Status and Status Reason fields.</releaseNotes>
     <copyright>Copyright 2019</copyright>
     <tags>CDS PowerShell Dynamics PowerApps</tags>
     <dependencies>
