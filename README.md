@@ -14,3 +14,6 @@ https://www.itaintboring.com/dynamics-crm/a-powershell-script-to-importexport-so
 
 https://www.itaintboring.com/dynamics-crm/using-powershell-to-exportimport-solutions-data-and-word-templates/
 
+## Bulk-loading inactive records
+
+https://www.itaintboring.com/dynamics-crm/bulk-loading-inactive-records-to-cds/
