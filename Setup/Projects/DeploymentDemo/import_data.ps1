@@ -2,6 +2,7 @@ loader.ps1
 
 Push-CDSData "Data\documenttemplates.txt" 
 Push-CDSData "Data\deployedentity.txt" 
+Push-CDSData "Data\\deployedentitywithstatus.txt" 
 #Push-CDSData "Data\businessunit.txt" 
 
 write-host "Import finished - press a key..."
