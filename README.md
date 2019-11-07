@@ -2,6 +2,10 @@
 
 A powershell module for solution export/import, and more
 
+## Nuget
+
+https://www.nuget.org/packages/ItAintBoring.CDS.PowerShell
+
 ## Overview
 
 https://www.itaintboring.com/dynamics-crm/a-powershell-script-to-importexport-solutions-and-data/
