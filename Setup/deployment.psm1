@@ -268,9 +268,17 @@ function Get-ContentType($contentFile, $partName)
    $result = ""
    $found = ($contentFile -match "$partName`" ContentType=`"(.*?)`"" )
    if($matches -eq $null) {
+      if($partName -match 'odttf$')
+	  {
+	     $result = 'application/vnd.openxmlformats-officedocument.obfuscatedFont'
+	  }
       if($partName -match 'png$')
 	  {
 	     $result = 'image/png'
+	  }
+	  if($partName -match 'jpeg$')
+	  {
+	     $result = 'image/jpeg'
 	  }
 	  if($partName -match 'rels$')
 	  {
@@ -287,6 +295,10 @@ function Get-ContentType($contentFile, $partName)
    }
    else{
       $result = $matches[1]
+   }
+   if($result -eq "")
+   {
+     write-host "Cannot find content type for $partName in $contentFile"
    }
    return $result
 }
