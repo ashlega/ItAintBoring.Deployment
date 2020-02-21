@@ -11,6 +11,42 @@ Get-CDSSolution $global:SolutionName -Managed
 
 $fetch = @'
 <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+  <entity name="theme">
+    <attribute name="themeid" />
+    <attribute name="name" />
+    <attribute name="type" />
+    <attribute name="isdefaulttheme" />
+    <attribute name="headercolor" />
+    <attribute name="selectedlinkeffect" />
+    <attribute name="overriddencreatedon" />
+    <attribute name="panelheaderbackgroundcolor" />
+    <attribute name="pageheaderbackgroundcolor" />
+    <attribute name="navbarshelfcolor" />
+    <attribute name="navbarbackgroundcolor" />
+    <attribute name="maincolor" />
+    <attribute name="logotooltip" />
+    <attribute name="logoid" />
+    <attribute name="globallinkcolor" />
+    <attribute name="processcontrolcolor" />
+    <attribute name="hoverlinkeffect" />
+    <attribute name="exchangerate" />
+    <attribute name="defaultentitycolor" />
+    <attribute name="defaultcustomentitycolor" />
+    <attribute name="controlshade" />
+    <attribute name="controlborder" />
+    <attribute name="backgroundcolor" />
+    <attribute name="accentcolor" />
+    <order attribute="name" descending="false" />
+    <filter type="and">
+      <condition attribute="name" operator="eq" value="Test Theme" />
+    </filter>
+  </entity>
+</fetch>
+'@
+Get-CDSData $fetch "Data\themes.txt"
+
+$fetch = @'
+<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
   <entity name="documenttemplate">
     <attribute name="documenttemplateid" />
 	<attribute name="associatedentitytypecode" />

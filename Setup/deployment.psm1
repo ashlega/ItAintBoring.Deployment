@@ -82,6 +82,33 @@ function Get-Types($param)
   return [Helper]::GetObjectTypes($param)
 }
 
+function Push-CDSTheme()
+{
+  param(
+	[string]$themeName
+  )
+  $fetch = @"
+     <fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+	  <entity name='theme'>
+		<attribute name='themeid' />
+		 <filter type='and'>
+		  <condition attribute='name' operator='eq' value='$themeName' />
+		</filter>
+	  </entity>
+	</fetch>
+"@
+  
+  $query  = New-Object Microsoft.Xrm.Sdk.Query.FetchExpression $fetch
+  $results = $script:cds.DestConn.RetrieveMultiple($query)
+  $results.Entities | ForEach-Object -Process{
+	$themePushReq = [Microsoft.Crm.Sdk.Messages.PublishThemeRequest]::New()
+	$themeRef = New-Object Microsoft.Xrm.Sdk.EntityReference -ArgumentList @("theme", $_.Id)   
+	$themePushReq.Target = $themeRef
+	write-host "Publishing theme: $themeName"
+	$script:cds.DestConn.Execute($themePushReq)
+  } 
+}
+
 function Get-CDSSolution([string] $solutionName, [switch] $Managed = $false)
 {
   $script:cds.ExportSolution($solutionName, $Managed)
