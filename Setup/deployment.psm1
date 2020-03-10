@@ -575,7 +575,14 @@ class CDSDeployment {
 					$convValue = [decimal]::Parse($value)
 				}
 				
-				"owner"  { $ignore = $true }
+				"owner"  { 
+                    $pair = $value.Split(":")
+					$convValue = New-Object -TypeName Microsoft.Xrm.Sdk.EntityReference
+					$convValue.LogicalName = $pair[0]
+					$convValue.Id = $pair[1]
+					$convValue.Name = $null
+				}
+				
 				"status" { 
 				    $convValue = New-Object -TypeName Microsoft.Xrm.Sdk.OptionSetValue
 					$convValue.Value = [int]::Parse($value)
